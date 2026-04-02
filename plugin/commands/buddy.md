@@ -25,8 +25,11 @@
 ### `buddy rename <name>` — 重命名
 给你的宠物取一个新名字。
 
-### `buddy sidebar start` — 启动侧栏
-在 tmux 中启动实时侧栏渲染器。
+### `buddy sidebar start` — 启动实时侧栏
+在当前 tmux session 中打开一个新 pane，显示宠物的实时 ASCII art 动画。
+宠物会随着你的编码活动实时反应——写代码时好奇，出错时担心，空闲时打瞌睡。
+
+### `buddy sidebar stop` — 停止侧栏
 
 ## 实现方式
 
