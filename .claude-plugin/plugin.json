@@ -2,6 +2,9 @@
   "name": "claude-buddy",
   "version": "1.0.0",
   "description": "A virtual pet companion for your coding sessions",
-  "author": "Kennywu",
+  "author": {
+    "name": "Kennywu",
+    "email": "jdlow@live.cn"
+  },
   "license": "MIT"
 }
