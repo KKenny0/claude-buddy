@@ -5,25 +5,27 @@ This skill teaches you how to interact with and respond to the pet.
 
 ## Running Buddy Commands
 
-The buddy commands may not be globally installed. Use the Bash tool with one of these approaches:
+Use the Bash tool with this exact command pattern:
 
-1. **Try global command first:**
-   ```bash
-   buddy-core status
-   ```
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" <command>
+```
 
-2. **If not found, run the JS file directly via node:**
-   ```bash
-   node ~/.claude/plugins/claude-buddy/src/bin/buddy-core.js status
-   ```
-   (Adjust the plugin path if needed — check common locations like `~/.claude/plugins/claude-buddy/` or the workspace.)
+Where `<command>` is one of: `hatch`, `status`, `feed`, `play`, `pet`, `stats`, `rename <name>`.
 
-3. **Alternatively, use npx:**
-   ```bash
-   npx buddy-core status
-   ```
+**Examples:**
+```bash
+# Hatch a new pet
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" hatch
 
-> **Important:** Always use the Bash tool to run buddy commands. If `buddy-core` is not found as a global command, fall back to running the JS file directly with `node`.
+# Check status
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" status
+
+# Feed the pet
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" feed
+```
+
+> **Important:** Always use `node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js"` to run buddy commands. Do NOT try `buddy-core` as a global command — it may not be installed.
 
 ## Pet State
 
@@ -58,11 +60,11 @@ The pet's personality is influenced by its stats:
 ## How to Interact
 
 ```bash
-buddy-core feed      # Feed the pet
-buddy-core play      # Play with the pet
-buddy-core pet       # Pet the pet (+2 XP)
-buddy-core stats     # View stats (+1 XP)
-buddy-core status    # View status
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" feed
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" play
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" pet
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" stats
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" status
 ```
 
 ## Reading Pet State
@@ -70,11 +72,6 @@ buddy-core status    # View status
 To check the pet's current state:
 ```bash
 cat ~/.claude-buddy/pet.json
-```
-
-Or use the CLI:
-```bash
-buddy-core status
 ```
 
 ## Event Log
