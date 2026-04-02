@@ -1,7 +1,35 @@
 {
+  "description": "Claude Buddy — virtual pet companion hooks for session lifecycle and tool use events",
   "hooks": {
-    "session-start": "hooks/session-start.sh",
-    "post-tool-use": "hooks/post-tool-use.sh",
-    "stop": "hooks/stop.sh"
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/stop.sh"
+          }
+        ]
+      }
+    ]
   }
 }
