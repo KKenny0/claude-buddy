@@ -5,13 +5,13 @@
 ## 使用方法
 
 ### `buddy hatch` — 孵化一只新宠物
-基于你的用户名生成一只独一无二的宠物。物种、稀有度和属性都是确定的（基于哈希）。
+基于你的用户名生成一只独一无二的宠物。
 
 ### `buddy` / `buddy status` — 查看宠物状态
 显示宠物的当前状态：等级、经验值、属性、心情等。
 
 ### `buddy feed` — 喂食
-降低宠物的饥饿度。饥饿的宠物会变得不开心。
+降低宠物的饥饿度。
 
 ### `buddy play` — 玩耍
 提升宠物的能量和心情。
@@ -26,9 +26,22 @@
 给你的宠物取一个新名字。
 
 ### `buddy sidebar start` — 启动侧栏
-在 tmux 中启动实时侧栏渲染器，显示 ASCII art 宠物动画。
+在 tmux 中启动实时侧栏渲染器。
 
-### `buddy sidebar stop` — 停止侧栏
+## 实现方式
+
+使用 Bash 工具执行以下命令：
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" <command>
+```
+
+例如：
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" hatch
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" status
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" feed
+```
 
 ## 宠物系统
 
@@ -40,22 +53,3 @@
 - **Snark** — 毒舌程度
 
 宠物会根据你的编码活动产生反应，并通过经验值升级（最高 20 级）。
-
-## 运行命令
-
-`buddy-core` 可能没有全局安装。通过 Bash 工具运行时，按优先级尝试：
-
-1. 全局命令：`buddy-core status`
-2. 直接运行 JS：`node <plugin-dir>/src/bin/buddy-core.js status`
-3. npx：`npx buddy-core status`
-
-```bash
-# 查看所有命令
-buddy-core
-
-# 示例：孵化新宠物
-buddy-core hatch
-
-# 启动侧栏
-buddy-sidebar --width 28 --height 24
-```
