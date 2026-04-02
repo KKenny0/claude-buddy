@@ -11,12 +11,7 @@
       "name": "claude-buddy",
       "description": "🐾 A virtual pet companion that watches you code, reacts to your actions, and grows with you. 12 species, 5 rarity tiers, real-time tmux sidebar with ASCII art animations.",
       "category": "fun",
-      "source": {
-        "source": "git-subdir",
-        "url": "KKenny0/claude-buddy",
-        "path": ".",
-        "ref": "main"
-      },
+      "source": "./plugin",
       "homepage": "https://github.com/KKenny0/claude-buddy"
     }
   ]
