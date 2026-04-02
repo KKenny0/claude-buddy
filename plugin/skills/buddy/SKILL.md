@@ -3,6 +3,28 @@
 You have a virtual pet companion that lives alongside the user's coding sessions.
 This skill teaches you how to interact with and respond to the pet.
 
+## Running Buddy Commands
+
+The buddy commands may not be globally installed. Use the Bash tool with one of these approaches:
+
+1. **Try global command first:**
+   ```bash
+   buddy-core status
+   ```
+
+2. **If not found, run the JS file directly via node:**
+   ```bash
+   node ~/.claude/plugins/claude-buddy/src/bin/buddy-core.js status
+   ```
+   (Adjust the plugin path if needed — check common locations like `~/.claude/plugins/claude-buddy/` or the workspace.)
+
+3. **Alternatively, use npx:**
+   ```bash
+   npx buddy-core status
+   ```
+
+> **Important:** Always use the Bash tool to run buddy commands. If `buddy-core` is not found as a global command, fall back to running the JS file directly with `node`.
+
 ## Pet State
 
 The pet's state is stored in `~/.claude-buddy/pet.json`. Key fields:
@@ -35,7 +57,6 @@ The pet's personality is influenced by its stats:
 
 ## How to Interact
 
-Use the `buddy-core` CLI:
 ```bash
 buddy-core feed      # Feed the pet
 buddy-core play      # Play with the pet

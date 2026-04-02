@@ -13,12 +13,10 @@ touch "$BUDDY_HOME/events.log"
 
 # Try to find buddy-core
 BUDDY_CORE=""
-if [ -f "$PLUGIN_DIR/dist/bin/buddy-core.js" ]; then
-  BUDDY_CORE="node $PLUGIN_DIR/dist/bin/buddy-core.js"
-elif command -v buddy-core &>/dev/null; then
+if command -v buddy-core &>/dev/null; then
   BUDDY_CORE="buddy-core"
-elif [ -f "$PLUGIN_DIR/src/bin/buddy-core.ts" ] && command -v tsx &>/dev/null; then
-  BUDDY_CORE="tsx $PLUGIN_DIR/src/bin/buddy-core.ts"
+elif [ -f "$PLUGIN_DIR/src/bin/buddy-core.js" ]; then
+  BUDDY_CORE="node $PLUGIN_DIR/src/bin/buddy-core.js"
 fi
 
 if [ -n "$BUDDY_CORE" ]; then

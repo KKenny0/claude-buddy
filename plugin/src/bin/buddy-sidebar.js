@@ -7,12 +7,10 @@
  * Renders ASCII art pet + status in a compact sidebar.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import { SPECIES } from '../data/species';
-import type { Pet, Mood, EventLogEntry } from '../types';
-import { readPet, getBuddyHome } from '../storage';
+const fs = require('fs');
+const path = require('path');
+const { SPECIES } = require('../data/species');
+const { readPet, getBuddyHome } = require('../storage');
 
 // ANSI escape codes
 const ESC = '\x1b[';
@@ -51,22 +49,22 @@ for (let i = 0; i < args.length; i++) {
 }
 
 // State
-let pet: Pet | null = null;
+let pet = null;
 let currentReaction = '';
-let reactionTimer: ReturnType<typeof setTimeout> | null = null;
+let reactionTimer = null;
 let blinkState = false;
 let frame = 0;
 let tailWag = 0;
 let running = true;
 
 // Mood emoji map
-const moodEmojis: Record<Mood, string> = {
+const moodEmojis = {
   happy: '😊', sleepy: '😴', hungry: '😫',
   excited: '🤩', focused: '🤔', worried: '😰',
 };
 
 // Rarity color map
-const rarityColors: Record<string, string> = {
+const rarityColors = {
   common: colors.white,
   uncommon: colors.brightGreen,
   rare: colors.brightBlue,
@@ -75,11 +73,11 @@ const rarityColors: Record<string, string> = {
 };
 
 /** Get ASCII art for current pet state */
-function getPetArt(p: Pet): string[] {
+function getPetArt(p) {
   const species = SPECIES.find(s => s.id === p.species);
   if (!species) return ['???'];
 
-  let art: string[];
+  let art;
   switch (p.mood) {
     case 'happy': art = [...species.art.happy]; break;
     case 'excited': art = [...species.art.excited]; break;
@@ -106,10 +104,10 @@ function getPetArt(p: Pet): string[] {
 }
 
 /** Render the full sidebar */
-function render(): void {
+function render() {
   if (!pet) return;
 
-  const lines: string[] = [];
+  const lines = [];
   const rc = rarityColors[pet.rarity] ?? colors.white;
   const shinyTag = pet.shiny ? ` ${colors.brightYellow}✨SHINY${colors.reset}` : '';
 
@@ -168,9 +166,9 @@ function render(): void {
 }
 
 /** Wrap text to fit within a given width */
-function wrapText(text: string, maxLen: number): string[] {
+function wrapText(text, maxLen) {
   if (text.length <= maxLen) return [text];
-  const lines: string[] = [];
+  const lines = [];
   let remaining = text;
   while (remaining.length > 0) {
     if (remaining.length <= maxLen) {
@@ -192,7 +190,7 @@ function wrapText(text: string, maxLen: number): string[] {
 }
 
 /** Set a temporary reaction message */
-function setReaction(text: string, durationMs = 8000): void {
+function setReaction(text, durationMs = 8000) {
   currentReaction = text;
   if (reactionTimer) clearTimeout(reactionTimer);
   reactionTimer = setTimeout(() => {
@@ -202,7 +200,7 @@ function setReaction(text: string, durationMs = 8000): void {
 }
 
 /** Watch events.log for new entries */
-function watchEvents(): void {
+function watchEvents() {
   const eventLog = path.join(getBuddyHome(), 'events.log');
   if (!fs.existsSync(eventLog)) return;
 
@@ -227,7 +225,7 @@ function watchEvents(): void {
       const newLines = buf.toString('utf-8').trim().split('\n').filter(Boolean);
       for (const line of newLines) {
         try {
-          const event: EventLogEntry = JSON.parse(line);
+          const event = JSON.parse(line);
           handleEvent(event);
         } catch { /* ignore malformed lines */ }
       }
@@ -238,7 +236,7 @@ function watchEvents(): void {
 }
 
 /** Handle an event and produce a reaction */
-function handleEvent(event: EventLogEntry): void {
+function handleEvent(event) {
   if (!pet) return;
 
   const name = pet.name;
@@ -284,7 +282,7 @@ function handleEvent(event: EventLogEntry): void {
 }
 
 /** Main loop */
-function main(): void {
+function main() {
   process.stdout.write(CLEAR);
 
   // Initial load

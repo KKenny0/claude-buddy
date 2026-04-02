@@ -3,25 +3,7 @@
  * Each species has ASCII art for normal, happy, sleepy, and excited states.
  */
 
-export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-
-export interface SpeciesArt {
-  normal: string[];
-  happy: string[];
-  sleepy: string[];
-  excited: string[];
-}
-
-export interface SpeciesDef {
-  id: string;
-  name: string;
-  emoji: string;
-  rarity: Rarity[];
-  art: SpeciesArt;
-  personality: string[];
-}
-
-export const SPECIES: SpeciesDef[] = [
+const SPECIES = [
   {
     id: 'cat',
     name: 'Cat',
@@ -181,7 +163,7 @@ export const SPECIES: SpeciesDef[] = [
 ];
 
 /** Suggested names by species */
-export const NAME_SUGGESTIONS: Record<string, string[]> = {
+const NAME_SUGGESTIONS = {
   cat: ['小橘', '喵酱', 'Code Cat', 'Neko'],
   duck: ['鸭鸭', 'Quack', '小黄', 'Ducky'],
   ghost: ['幽灵', 'Casper', '小透明', 'Phantom'],
@@ -197,10 +179,12 @@ export const NAME_SUGGESTIONS: Record<string, string[]> = {
 };
 
 /** Hats by rarity */
-export const HATS: Record<Rarity, string[]> = {
+const HATS = {
   common: [],
   uncommon: ['🎩', '🎀', '⚽'],
   rare: ['👑', '🎓', '🧢', '🎩'],
   epic: ['⭐', '🌈', '💎', '🔮'],
   legendary: ['🏆', '🔱', '✨', '🌟'],
 };
+
+module.exports = { SPECIES, NAME_SUGGESTIONS, HATS };

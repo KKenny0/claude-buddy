@@ -2,27 +2,12 @@
   "name": "claude-buddy",
   "version": "1.0.0",
   "description": "A virtual pet companion for Claude Code coding sessions",
-  "main": "dist/index.js",
+  "main": "src/core.js",
   "bin": {
-    "buddy-core": "./dist/bin/buddy-core.js",
-    "buddy-react": "./dist/bin/buddy-react.js",
-    "buddy-sidebar": "./dist/bin/buddy-sidebar.js"
-  },
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "buddy-core": "tsx src/bin/buddy-core.ts",
-    "buddy-react": "tsx src/bin/buddy-react.ts",
-    "buddy-sidebar": "tsx src/bin/buddy-sidebar.ts"
+    "buddy-core": "./src/bin/buddy-core.js",
+    "buddy-react": "./src/bin/buddy-react.js",
+    "buddy-sidebar": "./src/bin/buddy-sidebar.js"
   },
   "keywords": ["claude", "pet", "companion", "tmux"],
-  "license": "MIT",
-  "dependencies": {
-    "chalk": "^5.3.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.4.0"
-  }
+  "license": "MIT"
 }
