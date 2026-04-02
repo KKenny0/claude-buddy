@@ -4,8 +4,8 @@
  * Usage: buddy-core <command> [args]
  */
 
-import { getOrCreatePet, generatePet, feedPet, playWithPet, petPet, renamePet, formatStatus, addXp, onSessionStart, onToolUse, onError, onSessionStop } from '../core';
-import { readPet, ensureSetup } from '../storage';
+const { getOrCreatePet, generatePet, feedPet, playWithPet, petPet, renamePet, formatStatus, addXp, onSessionStart, onToolUse, onError, onSessionStop } = require('../core');
+const { readPet, ensureSetup } = require('../storage');
 
 const args = process.argv.slice(2);
 const command = args[0];

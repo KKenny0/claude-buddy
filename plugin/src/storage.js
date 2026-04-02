@@ -3,18 +3,17 @@
  * Handles config directory creation, pet.json read/write, and event logging.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import type { Pet, EventLogEntry, HistoryEntry } from './types';
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
 /** Get the buddy home directory */
-export function getBuddyHome(): string {
+function getBuddyHome() {
   return path.join(os.homedir(), '.claude-buddy');
 }
 
 /** Ensure the buddy home directory and all files exist */
-export function ensureSetup(): void {
+function ensureSetup() {
   const home = getBuddyHome();
   if (!fs.existsSync(home)) {
     fs.mkdirSync(home, { recursive: true });
@@ -41,25 +40,25 @@ export function ensureSetup(): void {
 }
 
 /** Read pet state from disk */
-export function readPet(): Pet | null {
+function readPet() {
   const petPath = path.join(getBuddyHome(), 'pet.json');
   if (!fs.existsSync(petPath)) return null;
   try {
     const data = fs.readFileSync(petPath, 'utf-8');
-    return JSON.parse(data) as Pet;
+    return JSON.parse(data);
   } catch {
     return null;
   }
 }
 
 /** Write pet state to disk */
-export function writePet(pet: Pet): void {
+function writePet(pet) {
   const petPath = path.join(getBuddyHome(), 'pet.json');
   fs.writeFileSync(petPath, JSON.stringify(pet, null, 2));
 }
 
 /** Append an event to the event log */
-export function logEvent(entry: EventLogEntry): void {
+function logEvent(entry) {
   ensureSetup();
   const eventLog = path.join(getBuddyHome(), 'events.log');
   const line = JSON.stringify(entry) + '\n';
@@ -67,7 +66,7 @@ export function logEvent(entry: EventLogEntry): void {
 }
 
 /** Read config */
-export function readConfig(): Record<string, unknown> {
+function readConfig() {
   const configPath = path.join(getBuddyHome(), 'config.json');
   if (!fs.existsSync(configPath)) return {};
   try {
@@ -79,27 +78,39 @@ export function readConfig(): Record<string, unknown> {
 }
 
 /** Write config */
-export function writeConfig(config: Record<string, unknown>): void {
+function writeConfig(config) {
   const configPath = path.join(getBuddyHome(), 'config.json');
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 }
 
 /** Read history */
-export function readHistory(): HistoryEntry[] {
+function readHistory() {
   const historyPath = path.join(getBuddyHome(), 'history.json');
   if (!fs.existsSync(historyPath)) return [];
   try {
     const data = fs.readFileSync(historyPath, 'utf-8');
-    return JSON.parse(data) as HistoryEntry[];
+    return JSON.parse(data);
   } catch {
     return [];
   }
 }
 
 /** Append history entry */
-export function appendHistory(entry: HistoryEntry): void {
+function appendHistory(entry) {
   const history = readHistory();
   history.push(entry);
   const historyPath = path.join(getBuddyHome(), 'history.json');
   fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
 }
+
+module.exports = {
+  getBuddyHome,
+  ensureSetup,
+  readPet,
+  writePet,
+  logEvent,
+  readConfig,
+  writeConfig,
+  readHistory,
+  appendHistory,
+};

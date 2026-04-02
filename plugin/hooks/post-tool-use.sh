@@ -31,12 +31,10 @@ fi
 
 # Find buddy-core
 BUDDY_CORE=""
-if [ -f "$PLUGIN_DIR/dist/bin/buddy-core.js" ]; then
-  BUDDY_CORE="node $PLUGIN_DIR/dist/bin/buddy-core.js"
-elif command -v buddy-core &>/dev/null; then
+if command -v buddy-core &>/dev/null; then
   BUDDY_CORE="buddy-core"
-elif [ -f "$PLUGIN_DIR/src/bin/buddy-core.ts" ] && command -v tsx &>/dev/null; then
-  BUDDY_CORE="tsx $PLUGIN_DIR/src/bin/buddy-core.ts"
+elif [ -f "$PLUGIN_DIR/src/bin/buddy-core.js" ]; then
+  BUDDY_CORE="node $PLUGIN_DIR/src/bin/buddy-core.js"
 fi
 
 if [ -n "$BUDDY_CORE" ] && [ -n "$TOOL_NAME" ]; then
@@ -49,12 +47,10 @@ fi
 
 # Generate a reaction for Claude to see
 BUDDY_REACT=""
-if [ -f "$PLUGIN_DIR/dist/bin/buddy-react.js" ]; then
-  BUDDY_REACT="node $PLUGIN_DIR/dist/bin/buddy-react.js"
-elif command -v buddy-react &>/dev/null; then
+if command -v buddy-react &>/dev/null; then
   BUDDY_REACT="buddy-react"
-elif [ -f "$PLUGIN_DIR/src/bin/buddy-react.ts" ] && command -v tsx &>/dev/null; then
-  BUDDY_REACT="tsx $PLUGIN_DIR/src/bin/buddy-react.ts"
+elif [ -f "$PLUGIN_DIR/src/bin/buddy-react.js" ]; then
+  BUDDY_REACT="node $PLUGIN_DIR/src/bin/buddy-react.js"
 fi
 
 if [ -n "$BUDDY_REACT" ] && [ -n "$TOOL_NAME" ]; then

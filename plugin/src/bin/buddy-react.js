@@ -4,9 +4,8 @@
  * Used by hooks to produce Claude-readable reactions.
  */
 
-import { readPet } from '../storage';
-import { SPECIES } from '../data/species';
-import type { Mood } from '../types';
+const { readPet } = require('../storage');
+const { SPECIES } = require('../data/species');
 
 const tool = process.argv[2];
 const file = process.argv[3] ?? '';
@@ -15,20 +14,14 @@ let pet = readPet();
 if (!pet) {
   process.exit(0);
 }
-// TypeScript narrowing: guaranteed non-null after check
-const petNonNull = pet!;
-
-// Species lookup (unused but available for future art rendering)
-const _species = SPECIES.find(s => s.id === pet.species);
-void _species;
 
 /** Reactions keyed by tool type, with personality-based variations */
-function getReaction(toolName: string, petMood: Mood): string {
-  const chaos = petNonNull.stats.chaos;
-  const snark = petNonNull.stats.snark;
-  const wisdom = petNonNull.stats.wisdom;
-  const name = petNonNull.name;
-  const emoji = petNonNull.speciesEmoji;
+function getReaction(toolName, petMood) {
+  const chaos = pet.stats.chaos;
+  const snark = pet.stats.snark;
+  const wisdom = pet.stats.wisdom;
+  const name = pet.name;
+  const emoji = pet.speciesEmoji;
 
   // High chaos responses
   const chaotic = [
@@ -51,7 +44,7 @@ function getReaction(toolName: string, petMood: Mood): string {
     `${emoji} ${name}: "有时候，最好的代码是不写的代码"`,
   ];
 
-  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
   switch (toolName.toLowerCase()) {
     case 'write':

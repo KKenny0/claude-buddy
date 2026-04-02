@@ -3,13 +3,12 @@
  * Handles species generation, stats, XP/leveling, and state updates.
  */
 
-import * as crypto from 'crypto';
-import { SPECIES, NAME_SUGGESTIONS, HATS } from './data/species';
-import type { Pet, PetStats, Rarity, Mood, EventLogEntry } from './types';
-import { ensureSetup, readPet, writePet, logEvent, appendHistory } from './storage';
+const crypto = require('crypto');
+const { SPECIES, NAME_SUGGESTIONS, HATS } = require('./data/species');
+const { ensureSetup, readPet, writePet, logEvent, appendHistory } = require('./storage');
 
 /** XP required for each level (index = level, value = total XP needed) */
-const LEVEL_XP: Record<number, number> = {
+const LEVEL_XP = {
   1: 0, 2: 20, 3: 50, 4: 80, 5: 100,
   6: 140, 7: 180, 8: 220, 9: 260, 10: 300,
   11: 350, 12: 400, 13: 460, 14: 520, 15: 600,
@@ -17,28 +16,28 @@ const LEVEL_XP: Record<number, number> = {
 };
 
 /** Get total XP needed for a level */
-function xpForLevel(level: number): number {
+function xpForLevel(level) {
   return LEVEL_XP[Math.min(level, 20)] ?? 1000;
 }
 
 /** Get XP needed from current level to next */
-function xpToNextLevel(level: number): number {
+function xpToNextLevel(level) {
   if (level >= 20) return 0;
   return xpForLevel(level + 1) - xpForLevel(level);
 }
 
 /** Determine rarity from hash */
-function determineRarity(hash: string): Rarity {
+function determineRarity(hash) {
   const roll = parseInt(hash.slice(0, 2), 16) % 100;
   if (roll < 60) return 'common';
   if (roll < 85) return 'uncommon';
   if (roll < 95) return 'rare';
   if (roll < 99) return 'epic';
-  return 'legendary' as Rarity;
+  return 'legendary';
 }
 
 /** Stat floor based on rarity */
-function statFloor(rarity: Rarity): number {
+function statFloor(rarity) {
   switch (rarity) {
     case 'common': return 5;
     case 'uncommon': return 15;
@@ -49,13 +48,13 @@ function statFloor(rarity: Rarity): number {
 }
 
 /** Generate random stats with a peak and dump stat */
-function generateStats(rarity: Rarity, hash: string): PetStats {
+function generateStats(rarity, hash) {
   const floor = statFloor(rarity);
-  const statKeys: (keyof PetStats)[] = ['debug', 'patience', 'chaos', 'wisdom', 'snark'];
+  const statKeys = ['debug', 'patience', 'chaos', 'wisdom', 'snark'];
   const peakIndex = parseInt(hash.slice(0, 2), 16) % statKeys.length;
   const dumpIndex = (peakIndex + 1 + parseInt(hash.slice(2, 4), 16) % (statKeys.length - 1)) % statKeys.length;
 
-  const stats: Partial<PetStats> = {};
+  const stats = {};
   for (let i = 0; i < statKeys.length; i++) {
     const key = statKeys[i];
     if (i === peakIndex) {
@@ -67,11 +66,11 @@ function generateStats(rarity: Rarity, hash: string): PetStats {
     }
   }
 
-  return stats as PetStats;
+  return stats;
 }
 
 /** Suggest a name for the species */
-function suggestName(speciesId: string, hash: string): string {
+function suggestName(speciesId, hash) {
   const names = NAME_SUGGESTIONS[speciesId] ?? ['Buddy', '小伴'];
   const index = parseInt(hash.slice(0, 2), 16) % names.length;
   return names[index];
@@ -81,7 +80,7 @@ function suggestName(speciesId: string, hash: string): string {
  * Generate a new pet based on username.
  * Uses SHA-256 hash for deterministic generation.
  */
-export function generatePet(username: string): Pet {
+function generatePet(username) {
   ensureSetup();
   const hash = crypto.createHash('sha256').update(username).digest('hex');
   const rarity = determineRarity(hash);
@@ -95,7 +94,7 @@ export function generatePet(username: string): Pet {
   const shiny = parseInt(hash.slice(3, 5), 16) % 100 === 0;
 
   // Hat for uncommon+
-  let hat: string | undefined;
+  let hat;
   if (rarity !== 'common') {
     const hats = HATS[rarity];
     hat = hats[parseInt(hash.slice(5, 7), 16) % hats.length];
@@ -104,7 +103,7 @@ export function generatePet(username: string): Pet {
   const name = suggestName(species.id, hash.slice(7));
   const stats = generateStats(rarity, hash.slice(10));
 
-  const pet: Pet = {
+  const pet = {
     species: species.id,
     speciesName: species.name,
     speciesEmoji: species.emoji,
@@ -136,7 +135,7 @@ export function generatePet(username: string): Pet {
 }
 
 /** Get or create pet */
-export function getOrCreatePet(username?: string): Pet {
+function getOrCreatePet(username) {
   ensureSetup();
   let pet = readPet();
   if (!pet) {
@@ -146,7 +145,7 @@ export function getOrCreatePet(username?: string): Pet {
 }
 
 /** Add XP and handle level ups */
-export function addXp(pet: Pet, amount: number, reason: string): Pet {
+function addXp(pet, amount, reason) {
   if (pet.level >= 20) return pet;
   pet.xp += amount;
   pet.lastActive = new Date().toISOString();
@@ -164,7 +163,7 @@ export function addXp(pet: Pet, amount: number, reason: string): Pet {
 }
 
 /** Update pet mood */
-export function setMood(pet: Pet, mood: Mood): Pet {
+function setMood(pet, mood) {
   pet.mood = mood;
   pet.lastActive = new Date().toISOString();
   writePet(pet);
@@ -172,7 +171,7 @@ export function setMood(pet: Pet, mood: Mood): Pet {
 }
 
 /** Feed the pet */
-export function feedPet(pet: Pet): Pet {
+function feedPet(pet) {
   pet.hunger = Math.max(0, pet.hunger - 30);
   pet.mood = 'happy';
   pet.lastActive = new Date().toISOString();
@@ -182,7 +181,7 @@ export function feedPet(pet: Pet): Pet {
 }
 
 /** Play with the pet */
-export function playWithPet(pet: Pet): Pet {
+function playWithPet(pet) {
   pet.energy = Math.min(100, pet.energy + 20);
   pet.hunger = Math.min(100, pet.hunger + 10);
   pet.mood = 'excited';
@@ -193,7 +192,7 @@ export function playWithPet(pet: Pet): Pet {
 }
 
 /** Pet the pet (gain XP) */
-export function petPet(pet: Pet): Pet {
+function petPet(pet) {
   if (pet.petXpToday < 20) {
     addXp(pet, 2, 'pet');
     pet.petXpToday += 2;
@@ -206,7 +205,7 @@ export function petPet(pet: Pet): Pet {
 }
 
 /** Rename the pet */
-export function renamePet(pet: Pet, newName: string): Pet {
+function renamePet(pet, newName) {
   const oldName = pet.name;
   pet.name = newName;
   pet.lastActive = new Date().toISOString();
@@ -216,7 +215,7 @@ export function renamePet(pet: Pet, newName: string): Pet {
 }
 
 /** Handle session start */
-export function onSessionStart(pet: Pet): Pet {
+function onSessionStart(pet) {
   // Daily session XP
   const today = new Date().toISOString().slice(0, 10);
   const lastActive = pet.lastActive.slice(0, 10);
@@ -251,7 +250,7 @@ export function onSessionStart(pet: Pet): Pet {
 }
 
 /** Handle tool use */
-export function onToolUse(pet: Pet, tool: string, file?: string): Pet {
+function onToolUse(pet, tool, file) {
   pet.toolUseCount += 1;
   pet.lastActive = new Date().toISOString();
 
@@ -289,7 +288,7 @@ export function onToolUse(pet: Pet, tool: string, file?: string): Pet {
 }
 
 /** Handle error */
-export function onError(pet: Pet, tool: string): Pet {
+function onError(pet, tool) {
   pet.mood = 'worried';
   addXp(pet, 3, 'error_recovery');
   pet.lastActive = new Date().toISOString();
@@ -299,7 +298,7 @@ export function onError(pet: Pet, tool: string): Pet {
 }
 
 /** Handle session stop */
-export function onSessionStop(pet: Pet): Pet {
+function onSessionStop(pet) {
   pet.mood = 'sleepy';
   pet.energy = Math.max(0, pet.energy - 10);
   pet.lastActive = new Date().toISOString();
@@ -309,7 +308,7 @@ export function onSessionStop(pet: Pet): Pet {
 }
 
 /** Apply decay (hunger increase, energy decrease, mood change) */
-export function applyDecay(pet: Pet): Pet {
+function applyDecay(pet) {
   pet.hunger = Math.min(100, pet.hunger + 1);
   pet.energy = Math.max(0, pet.energy - 1);
 
@@ -328,7 +327,7 @@ export function applyDecay(pet: Pet): Pet {
 }
 
 /** Get current XP progress as percentage */
-export function xpProgress(pet: Pet): number {
+function xpProgress(pet) {
   if (pet.level >= 20) return 100;
   const currentLevelBase = xpForLevel(pet.level);
   const nextLevelBase = xpForLevel(pet.level + 1);
@@ -336,8 +335,8 @@ export function xpProgress(pet: Pet): number {
 }
 
 /** Format pet status as text */
-export function formatStatus(pet: Pet): string {
-  const rarityColors: Record<Rarity, string> = {
+function formatStatus(pet) {
+  const rarityColors = {
     common: '⬜',
     uncommon: '🟩',
     rare: '🟦',
@@ -345,7 +344,7 @@ export function formatStatus(pet: Pet): string {
     legendary: '🟨',
   };
 
-  const moodEmojis: Record<string, string> = {
+  const moodEmojis = {
     happy: '😊', sleepy: '😴', hungry: '😫',
     excited: '🤩', focused: '🤔', worried: '😰',
   };
@@ -372,3 +371,21 @@ export function formatStatus(pet: Pet): string {
     `🔥 Streak: ${pet.streak} days`,
   ].join('\n');
 }
+
+module.exports = {
+  generatePet,
+  getOrCreatePet,
+  addXp,
+  setMood,
+  feedPet,
+  playWithPet,
+  petPet,
+  renamePet,
+  onSessionStart,
+  onToolUse,
+  onError,
+  onSessionStop,
+  applyDecay,
+  xpProgress,
+  formatStatus,
+};

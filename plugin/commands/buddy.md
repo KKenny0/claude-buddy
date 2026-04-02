@@ -43,7 +43,12 @@
 
 ## 运行命令
 
-使用 `buddy-core` CLI 工具来管理宠物：
+`buddy-core` 可能没有全局安装。通过 Bash 工具运行时，按优先级尝试：
+
+1. 全局命令：`buddy-core status`
+2. 直接运行 JS：`node <plugin-dir>/src/bin/buddy-core.js status`
+3. npx：`npx buddy-core status`
+
 ```bash
 # 查看所有命令
 buddy-core
