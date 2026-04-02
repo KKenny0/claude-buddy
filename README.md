@@ -14,29 +14,59 @@ A virtual pet companion for Claude Code coding sessions.
 
 ## Installation
 
-1. Clone this repo or install via npm:
-   ```bash
-   git clone https://github.com/KKenny0/claude-buddy.git
-   cd claude-buddy
-   npm install
-   npm run build
-   ```
+### Step 1: Clone & Build
 
-2. Or install globally:
-   ```bash
-   npm install -g .
-   ```
+```bash
+git clone https://github.com/KKenny0/claude-buddy.git
+cd claude-buddy
+npm install
+npm run build
+```
+
+### Step 2: Install as Claude Code Plugin
+
+**Option A: Local plugin (推荐，最简单)**
+
+在任意项目目录下启动 Claude Code 时加载插件：
+
+```bash
+claude --plugin-dir ~/path/to/claude-buddy
+```
+
+> 💡 把 `~/path/to/claude-buddy` 替换成你实际的仓库路径。如果你 clone 到了 home 目录，那就是 `claude --plugin-dir ~/claude-buddy`。
+
+**Option B: Global install via npm**
+
+```bash
+cd claude-buddy
+npm install -g .
+```
+
+安装后在任意位置启动 `claude` 即可使用 `/buddy` 命令。
+
+### Step 3: Verify
+
+启动 Claude Code 后输入：
+```
+/buddy hatch
+```
+看到宠物孵化信息就说明安装成功 🎉
 
 ## Quick Start
 
+在 Claude Code 中：
+
+```
+/buddy hatch          # 孵化你的第一只宠物
+/buddy status         # 查看状态
+/buddy feed           # 喂食
+/buddy pet            # 摸摸 (+2 XP)
+```
+
+在终端中（可选）：
+
 ```bash
-# Hatch your first pet!
-buddy-core hatch
-
-# Check status
-buddy-core status
-
-# Start the tmux sidebar (optional)
+# 启动 tmux 侧栏（需要先 build）
 buddy-sidebar --width 28 --height 24
 ```
 
