@@ -5,28 +5,30 @@
 set -euo pipefail
 
 BUDDY_HOME="$HOME/.claude-buddy"
-PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 
 # Only proceed if pet exists
 PET_JSON="$BUDDY_HOME/pet.json"
 [ ! -f "$PET_JSON" ] && exit 0
 
-# Read tool info from stdin (Claude Code passes tool info via stdin)
-# Format: JSON with tool name, input, etc.
-TOOL_NAME=""
-TOOL_FILE=""
-
-# Try to parse stdin for tool info
+# Read tool info from stdin (Claude Code passes tool info via stdin JSON)
 INPUT=""
 if [ ! -t 0 ]; then
   INPUT=$(cat 2>/dev/null || echo "")
 fi
 
-# Extract tool name from input (simple JSON parsing without jq)
+# Extract tool name (use node since we know it's available)
+TOOL_NAME=""
+TOOL_FILE=""
 if [ -n "$INPUT" ]; then
-  TOOL_NAME=$(echo "$INPUT" | grep -o '"tool"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*:.*"\([^"]*\)".*/\1/' 2>/dev/null || true)
-  TOOL_FILE=$(echo "$INPUT" | grep -o '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*:.*"\([^"]*\)".*/\1/' 2>/dev/null || true)
-  [ -z "$TOOL_FILE" ] && TOOL_FILE=$(echo "$INPUT" | grep -o '"file"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*:.*"\([^"]*\)".*/\1/' 2>/dev/null || true)
+  TOOL_NAME=$(echo "$INPUT" | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      try{const j=JSON.parse(d);console.log(j.tool_name||j.tool||'')}catch(e){console.log('')}
+    })" 2>/dev/null || true)
+  TOOL_FILE=$(echo "$INPUT" | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      try{const j=JSON.parse(d);console.log(j.file_path||j.file||j.path||'')}catch(e){console.log('')}
+    })" 2>/dev/null || true)
 fi
 
 # Find buddy-core
@@ -38,10 +40,8 @@ elif [ -f "$PLUGIN_DIR/src/bin/buddy-core.js" ]; then
 fi
 
 if [ -n "$BUDDY_CORE" ] && [ -n "$TOOL_NAME" ]; then
-  # Check exit code for error detection
   TOOL_EXIT_CODE="${TOOL_EXIT_CODE:-0}"
   export TOOL_EXIT_CODE
-  
   $BUDDY_CORE tool-use "$TOOL_NAME" "$TOOL_FILE" 2>/dev/null || true
 fi
 
@@ -56,15 +56,13 @@ fi
 if [ -n "$BUDDY_REACT" ] && [ -n "$TOOL_NAME" ]; then
   REACTION=$($BUDDY_REACT "$TOOL_NAME" "$TOOL_FILE" 2>/dev/null || true)
   if [ -n "$REACTION" ]; then
-    # Only show reaction occasionally (not every tool use) to avoid spam
-    # Use a counter file
+    # Only show reaction occasionally to avoid spam
     COUNTER_FILE="$BUDDY_HOME/.react-counter"
     COUNT=0
     [ -f "$COUNTER_FILE" ] && COUNT=$(cat "$COUNTER_FILE" 2>/dev/null || echo "0")
     COUNT=$((COUNT + 1))
     echo "$COUNT" > "$COUNTER_FILE"
     
-    # Show reaction every 5 tool uses
     if [ $((COUNT % 5)) -eq 0 ]; then
       echo ""
       echo "$REACTION"

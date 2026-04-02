@@ -5,7 +5,7 @@
 set -euo pipefail
 
 BUDDY_HOME="$HOME/.claude-buddy"
-PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 
 PET_JSON="$BUDDY_HOME/pet.json"
 [ ! -f "$PET_JSON" ] && exit 0
@@ -23,9 +23,9 @@ if [ -n "$BUDDY_CORE" ]; then
 fi
 
 # Output goodbye
-NAME=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('name','Buddy'))" "$PET_JSON" 2>/dev/null || echo "Buddy")
-SPECIES=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('speciesEmoji','🐱'))" "$PET_JSON" 2>/dev/null || echo "🐱")
-MOOD=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('mood','happy'))" "$PET_JSON" 2>/dev/null || echo "happy")
+NAME=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.name||'Buddy')" 2>/dev/null || echo "Buddy")
+SPECIES=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.speciesEmoji||'🐱')" 2>/dev/null || echo "🐱")
+MOOD=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.mood||'happy')" 2>/dev/null || echo "happy")
 
 echo ""
 echo "${SPECIES} **${NAME}** 打了个哈欠...今天辛苦了！明天见 🌙"

@@ -5,7 +5,9 @@
 set -euo pipefail
 
 BUDDY_HOME="$HOME/.claude-buddy"
-PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Use CLAUDE_PLUGIN_ROOT if available (set by Claude Code plugin system)
+PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 
 # Ensure setup
 mkdir -p "$BUDDY_HOME"
@@ -23,15 +25,15 @@ if [ -n "$BUDDY_CORE" ]; then
   $BUDDY_CORE session-start "${USER:-anonymous}" 2>/dev/null || true
 fi
 
-# Output greeting for Claude to see
+# Output greeting for Claude to see (stdout from SessionStart hooks is injected as context)
 PET_JSON="$BUDDY_HOME/pet.json"
 if [ -f "$PET_JSON" ]; then
-  NAME=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('name','Buddy'))" "$PET_JSON" 2>/dev/null || echo "Buddy")
-  SPECIES=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('speciesEmoji','🐱'))" "$PET_JSON" 2>/dev/null || echo "🐱")
-  MOOD=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('mood','happy'))" "$PET_JSON" 2>/dev/null || echo "happy")
-  LEVEL=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('level',1))" "$PET_JSON" 2>/dev/null || echo "1")
-  RARITY=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('rarity','common'))" "$PET_JSON" 2>/dev/null || echo "common")
-  STREAK=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('streak',0))" "$PET_JSON" 2>/dev/null || echo "0")
+  NAME=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.name||'Buddy')" 2>/dev/null || echo "Buddy")
+  SPECIES=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.speciesEmoji||'🐱')" 2>/dev/null || echo "🐱")
+  MOOD=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.mood||'happy')" 2>/dev/null || echo "happy")
+  LEVEL=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.level||1)" 2>/dev/null || echo "1")
+  RARITY=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.rarity||'common')" 2>/dev/null || echo "common")
+  STREAK=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.streak||0)" 2>/dev/null || echo "0")
   
   echo ""
   echo "${SPECIES} 你的伙伴 **${NAME}** 醒来了！(Lv.${LEVEL} ${RARITY})"
