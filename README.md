@@ -31,9 +31,7 @@ That's it. Restart Claude Code and the plugin is active globally.
 
 ```bash
 git clone https://github.com/KKenny0/claude-buddy.git
-cd claude-buddy/plugin
-npm install && npm run build
-claude --plugin-dir .
+claude --plugin-dir ./claude-buddy/plugin
 ```
 
 ### npm global
@@ -41,7 +39,6 @@ claude --plugin-dir .
 ```bash
 git clone https://github.com/KKenny0/claude-buddy.git
 cd claude-buddy/plugin
-npm install && npm run build
 npm link
 ```
 
