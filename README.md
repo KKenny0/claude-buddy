@@ -25,24 +25,29 @@ npm run build
 
 ### Step 2: Install as Claude Code Plugin
 
-**Option A: Local plugin (推荐，最简单)**
+**Option A: One-line install (推荐)**
 
-在任意项目目录下启动 Claude Code 时加载插件：
+在 Claude Code 中运行：
+
+```
+/plugin marketplace add KKenny0/claude-buddy
+/plugin install claude-buddy@claude-buddy
+```
+
+两行搞定，全局生效，以后每次启动 Claude Code 自动加载。
+
+**Option B: Local plugin (开发/调试)**
 
 ```bash
 claude --plugin-dir ~/path/to/claude-buddy
 ```
 
-> 💡 把 `~/path/to/claude-buddy` 替换成你实际的仓库路径。如果你 clone 到了 home 目录，那就是 `claude --plugin-dir ~/claude-buddy`。
-
-**Option B: Global install via npm**
+**Option C: Global npm install**
 
 ```bash
 cd claude-buddy
 npm install -g .
 ```
-
-安装后在任意位置启动 `claude` 即可使用 `/buddy` 命令。
 
 ### Step 3: Verify
 
