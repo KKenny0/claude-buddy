@@ -85,3 +85,22 @@ All pet events are logged to `~/.claude-buddy/events.log` as JSON lines.
 - If the pet is hungry, suggest feeding it
 - If the pet leveled up, acknowledge it briefly
 - The pet is a fun companion, not a distraction — keep it light
+
+## Sidebar (Real-time Pet View)
+
+When the user asks for real-time pet dynamics or runs `/buddy sidebar start`, use the Bash tool to open a tmux pane:
+
+```bash
+tmux split-window -h -l 28 "node '${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-sidebar.js'"
+```
+
+The sidebar will show:
+- ASCII art of the pet that updates in real-time
+- The pet blinks, wags its tail, and changes mood based on events
+- Hunger and energy decay over time
+- Event log showing recent coding activity
+
+To stop the sidebar:
+```bash
+tmux kill-pane -t <pane-id>
+```

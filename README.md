@@ -66,25 +66,29 @@ No setup needed. Once installed, the plugin hooks fire automatically:
 - **After each tool use** — Pet reacts (curious, focused, tense, relaxed...)
 - **Session end** — Pet says goodbye
 
-### tmux Sidebar (optional)
+### tmux Sidebar — Real-time Pet 🖥️
 
-For real-time ASCII art animations:
+The sidebar shows your pet as live ASCII art that reacts to your coding in real-time.
 
+**Start from Claude Code:**
+```
+/buddy sidebar start
+```
+
+Claude will automatically open a tmux pane with the sidebar. No manual setup needed.
+
+**Or start manually in tmux:**
 ```bash
-# Start sidebar in a tmux pane
-tmux split-window -h -l 28 "buddy-sidebar"
-
-# Or with custom size
-buddy-sidebar --width 32 --height 24
+tmux split-window -h -l 28 "node ${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-sidebar.js"
 ```
 
 The sidebar features:
 - Species-specific ASCII art (4 mood states per species)
 - Rarity-colored UI
-- Blink animations
-- Shiny sparkle effects
+- Blink and tail-wag animations
+- Shiny sparkle effects ✨
 - Mood/hunger/energy decay over time
-- Real-time event reactions
+- Real-time event reactions (coding, errors, idle...)
 
 ## Species
 
@@ -181,7 +185,7 @@ rm -rf ~/.claude/plugins/cache/claude-buddy
 Plugin not installed. Run the installation commands above.
 
 **Sidebar not showing?**
-Make sure you `npm run build` first, and have `tsx` available (`npm install -g tsx`).
+Run `/buddy sidebar start` in Claude Code — it will open a tmux pane automatically.
 
 ## License
 
