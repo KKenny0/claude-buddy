@@ -36,9 +36,9 @@ function setupHooks() {
 
     // Build hooks config (Claude Code requires nested format with matchers)
     const buddyHooks = {
-      SessionStart: [{ hooks: [{ type: 'command', command: `bash ${hooksDir}/session-start.sh` }] }],
+      SessionStart: [{ matcher: '*', hooks: [{ type: 'command', command: `bash ${hooksDir}/session-start.sh` }] }],
       PostToolUse: [{ matcher: '', hooks: [{ type: 'command', command: `bash ${hooksDir}/post-tool-use.sh` }] }],
-      Stop: [{ hooks: [{ type: 'command', command: `bash ${hooksDir}/stop.sh` }] }],
+      Stop: [{ matcher: '*', hooks: [{ type: 'command', command: `bash ${hooksDir}/stop.sh` }] }],
     };
 
     if (!settings.hooks) {
