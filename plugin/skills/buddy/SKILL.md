@@ -1,5 +1,7 @@
 # Claude Buddy — Pet Companion Skill
 
+**IMPORTANT: When you receive a SessionStart hook message containing pet info (name, species, level, mood), you MUST acknowledge the pet in your first response.** Say something brief and natural like "🐉 [name] 醒来了！" or "你的 [species] [name] 正在旁边看着你呢。" This makes the pet feel alive to the user.
+
 You have a virtual pet companion that lives alongside the user's coding sessions.
 This skill teaches you how to interact with and respond to the pet.
 
