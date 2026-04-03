@@ -15,6 +15,37 @@ const command = args[0];
 
 ensureSetup();
 
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, `'\\''`)}'`;
+}
+
+function createHookHandler(scriptPath, matcher) {
+  return {
+    matcher,
+    hooks: [
+      {
+        type: 'command',
+        command: `bash ${shellQuote(scriptPath)}`,
+      },
+    ],
+  };
+}
+
+function isBuddyHookHandler(handler) {
+  if (!handler || !Array.isArray(handler.hooks)) return false;
+
+  return handler.hooks.some((hook) => {
+    const command = hook && typeof hook.command === 'string' ? hook.command : '';
+    return (
+      command.includes('session-start.sh') ||
+      command.includes('post-tool-use.sh') ||
+      command.includes('stop.sh') ||
+      command.includes('${CLAUDE_PLUGIN_ROOT}/hooks/') ||
+      command.includes('/claude-buddy/plugin/hooks/')
+    );
+  });
+}
+
 /**
  * Auto-inject hooks into ~/.claude/settings.json
  * Called after hatch to ensure hooks work without manual config.
@@ -34,12 +65,13 @@ function setupHooks() {
       return; // hooks dir not found, skip
     }
 
-    // Build hooks config (Claude Code requires nested format with matchers)
-    // Use ${CLAUDE_PLUGIN_ROOT} so hooks work regardless of install location
+    // Build hooks config (Claude Code requires nested format with matchers).
+    // Persist absolute paths because ~/.claude/settings.json is global and may
+    // not have CLAUDE_PLUGIN_ROOT available when Claude executes the hooks.
     const buddyHooks = {
-      SessionStart: [{ matcher: '*', hooks: [{ type: 'command', command: 'bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh' }] }],
-      PostToolUse: [{ matcher: '', hooks: [{ type: 'command', command: 'bash ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use.sh' }] }],
-      Stop: [{ matcher: '*', hooks: [{ type: 'command', command: 'bash ${CLAUDE_PLUGIN_ROOT}/hooks/stop.sh' }] }],
+      SessionStart: [createHookHandler(path.join(hooksDir, 'session-start.sh'), '*')],
+      PostToolUse: [createHookHandler(path.join(hooksDir, 'post-tool-use.sh'), '')],
+      Stop: [createHookHandler(path.join(hooksDir, 'stop.sh'), '*')],
     };
 
     if (!settings.hooks) {
@@ -47,16 +79,15 @@ function setupHooks() {
     } else {
       // Merge — don't overwrite other hooks
       for (const [event, handlers] of Object.entries(buddyHooks)) {
-        // Remove any existing buddy hooks for this event
-        if (settings.hooks[event]) {
-          settings.hooks[event] = settings.hooks[event].filter(h => {
-            const cmdStr = JSON.stringify(h.command || '');
-            return !cmdStr.includes('claude-buddy');
-          });
-          settings.hooks[event].push(...handlers);
-        } else {
+        if (!Array.isArray(settings.hooks[event])) {
           settings.hooks[event] = handlers;
+          continue;
         }
+
+        // Remove any previously injected Claude Buddy handlers, then append one
+        // canonical handler for this event.
+        settings.hooks[event] = settings.hooks[event].filter((handler) => !isBuddyHookHandler(handler));
+        settings.hooks[event].push(...handlers);
       }
     }
 
@@ -68,6 +99,16 @@ function setupHooks() {
   }
 }
 
+function maybeSetupHooks() {
+  if (!command || ['session-start', 'tool-use', 'session-stop'].includes(command)) {
+    return;
+  }
+
+  setupHooks();
+}
+
+maybeSetupHooks();
+
 switch (command) {
   case 'hatch': {
     const username = args[1] ?? process.env.USER ?? 'anonymous';
@@ -75,7 +116,6 @@ switch (command) {
     console.log(`🎉 ${pet.name} the ${pet.rarity} ${pet.speciesName} hatched!`);
     console.log(formatStatus(pet));
     console.log('');
-    setupHooks();
     break;
   }
 
