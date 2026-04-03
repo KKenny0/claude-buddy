@@ -27,9 +27,17 @@
 
 ### `buddy sidebar start` — 启动实时侧栏
 在当前 tmux session 中打开一个新 pane，显示宠物的实时 ASCII art 动画。
-宠物会随着你的编码活动实时反应——写代码时好奇，出错时担心，空闲时打瞌睡。
+Claude 会自动查找插件路径并启动侧栏。
 
 ### `buddy sidebar stop` — 停止侧栏
+
+### 实现方式
+
+使用 Bash 工具执行（注意：tmux pane 无法使用 `${CLAUDE_PLUGIN_ROOT}`）：
+```bash
+PLUGIN_PATH=$(find ~/.claude/plugins/cache/claude-buddy -name "buddy-sidebar.js" -path "*/src/bin/*" | head -1)
+tmux split-window -h -l 28 "node '$PLUGIN_PATH'"
+```
 
 ## 实现方式
 

@@ -7,6 +7,15 @@
  * Renders ASCII art pet + status in a compact sidebar.
  */
 
+// Global error handler — prevent silent crashes
+process.on('uncaughtException', (err) => {
+  process.stderr.write(`[buddy-sidebar] ERROR: ${err.message}\n`);
+  // Keep running — don't crash on transient errors
+});
+process.on('unhandledRejection', (reason) => {
+  process.stderr.write(`[buddy-sidebar] UNHANDLED: ${reason}\n`);
+});
+
 const fs = require('fs');
 const path = require('path');
 const { SPECIES } = require('../data/species');
@@ -117,7 +126,7 @@ function render() {
   lines.push(`${colors.dim}│${colors.reset} ${rc}Lv.${pet.level} ${pet.rarity.toUpperCase()}${colors.reset}${' '.repeat(Math.max(0, width - 12 - pet.rarity.length))}${colors.dim}│${colors.reset}`);
 
   // XP bar
-  const progress = pet.level >= 20 ? 100 : Math.round(((pet.xp) / (pet.xpToNext + (pet.xp - pet.xpToNext))) * 100);
+  const progress = xpProgress(pet);
   const filled = Math.floor(progress / 5);
   const bar = `${colors.brightGreen}${'█'.repeat(filled)}${colors.dim}${'░'.repeat(20 - filled)}${colors.reset}`;
   lines.push(`${colors.dim}│${colors.reset} ${bar} ${colors.dim}│${colors.reset}`);
@@ -165,7 +174,17 @@ function render() {
   process.stdout.write(output);
 }
 
-/** Wrap text to fit within a given width */
+/** Calculate XP progress within current level (matches core.js logic) */
+function xpProgress(pet) {
+  if (pet.level >= 20) return 100;
+  // LEVEL_XP table (must match core.js)
+  const LEVEL_XP = [0, 20, 50, 90, 140, 200, 280, 380, 500, 650, 830, 1050, 1320, 1650, 2050, 2530, 3100, 3780, 4580, 5510, 6600];
+  const currentLevelBase = LEVEL_XP[pet.level] ?? 0;
+  const nextLevelBase = LEVEL_XP[pet.level + 1] ?? 6600;
+  const range = nextLevelBase - currentLevelBase;
+  if (range <= 0) return 100;
+  return Math.min(100, Math.max(0, Math.round(((pet.xp - currentLevelBase) / range) * 100)));
+}
 function wrapText(text, maxLen) {
   if (text.length <= maxLen) return [text];
   const lines = [];
