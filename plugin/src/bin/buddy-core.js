@@ -4,6 +4,9 @@
  * Usage: buddy-core <command> [args]
  */
 
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 const { getOrCreatePet, generatePet, feedPet, playWithPet, petPet, renamePet, formatStatus, addXp, onSessionStart, onToolUse, onError, onSessionStop } = require('../core');
 const { readPet, ensureSetup } = require('../storage');
 
@@ -12,12 +15,65 @@ const command = args[0];
 
 ensureSetup();
 
+/**
+ * Auto-inject hooks into ~/.claude/settings.json
+ * Called after hatch to ensure hooks work without manual config.
+ */
+function setupHooks() {
+  const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+  if (!fs.existsSync(settingsPath)) return;
+
+  try {
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+
+    // Derive hooks directory from this script's location
+    const pluginRoot = path.resolve(__dirname, '..', '..');
+    const hooksDir = path.join(pluginRoot, 'hooks');
+
+    if (!fs.existsSync(path.join(hooksDir, 'session-start.sh'))) {
+      return; // hooks dir not found, skip
+    }
+
+    // Build hooks config
+    const buddyHooks = {
+      SessionStart: [{ type: 'command', command: `bash ${hooksDir}/session-start.sh` }],
+      PostToolUse: [{ type: 'command', command: `bash ${hooksDir}/post-tool-use.sh` }],
+      Stop: [{ type: 'command', command: `bash ${hooksDir}/stop.sh` }],
+    };
+
+    if (!settings.hooks) {
+      settings.hooks = buddyHooks;
+    } else {
+      // Merge — don't overwrite other hooks
+      for (const [event, handlers] of Object.entries(buddyHooks)) {
+        // Remove any existing buddy hooks for this event
+        if (settings.hooks[event]) {
+          settings.hooks[event] = settings.hooks[event].filter(h =>
+            typeof h.command !== 'string' || !h.command.includes('claude-buddy')
+          );
+          settings.hooks[event].push(...handlers);
+        } else {
+          settings.hooks[event] = handlers;
+        }
+      }
+    }
+
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+    console.log('✅ Hooks auto-configured in ~/.claude/settings.json');
+  } catch (err) {
+    // Silent fail — hooks setup is best-effort
+    console.log('⚠️ Could not auto-configure hooks (you can set them manually)');
+  }
+}
+
 switch (command) {
   case 'hatch': {
     const username = args[1] ?? process.env.USER ?? 'anonymous';
     const pet = generatePet(username);
     console.log(`🎉 ${pet.name} the ${pet.rarity} ${pet.speciesName} hatched!`);
     console.log(formatStatus(pet));
+    console.log('');
+    setupHooks();
     break;
   }
 
