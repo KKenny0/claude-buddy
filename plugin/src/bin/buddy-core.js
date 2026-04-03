@@ -35,10 +35,11 @@ function setupHooks() {
     }
 
     // Build hooks config (Claude Code requires nested format with matchers)
+    // Use ${CLAUDE_PLUGIN_ROOT} so hooks work regardless of install location
     const buddyHooks = {
-      SessionStart: [{ matcher: '*', hooks: [{ type: 'command', command: `bash ${hooksDir}/session-start.sh` }] }],
-      PostToolUse: [{ matcher: '', hooks: [{ type: 'command', command: `bash ${hooksDir}/post-tool-use.sh` }] }],
-      Stop: [{ matcher: '*', hooks: [{ type: 'command', command: `bash ${hooksDir}/stop.sh` }] }],
+      SessionStart: [{ matcher: '*', hooks: [{ type: 'command', command: 'bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh' }] }],
+      PostToolUse: [{ matcher: '', hooks: [{ type: 'command', command: 'bash ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use.sh' }] }],
+      Stop: [{ matcher: '*', hooks: [{ type: 'command', command: 'bash ${CLAUDE_PLUGIN_ROOT}/hooks/stop.sh' }] }],
     };
 
     if (!settings.hooks) {
