@@ -46,17 +46,18 @@ npm link
 
 ### In Claude Code
 
-After installation, these commands are available:
+After installation, commands are prefixed with the plugin name:
 
 | Command | Description |
 |---------|-------------|
-| `/buddy hatch` | Hatch your first pet (based on your username) |
-| `/buddy` | Show pet status (level, XP, mood, stats) |
-| `/buddy feed` | Feed your pet (restores hunger) |
-| `/buddy play` | Play with your pet (boosts energy + mood) |
-| `/buddy pet` | Pet your buddy (+2 XP, daily cap 20) |
-| `/buddy stats` | Show detailed 5-dimension stats |
-| `/buddy rename <name>` | Give your pet a name |
+| `/claude-buddy:buddy hatch` | Hatch your first pet (based on your username) |
+| `/claude-buddy:buddy` | Show pet status (level, XP, mood, stats) |
+| `/claude-buddy:buddy feed` | Feed your pet (restores hunger) |
+| `/claude-buddy:buddy play` | Play with your pet (boosts energy + mood) |
+| `/claude-buddy:buddy pet` | Pet your buddy (+2 XP, daily cap 20) |
+| `/claude-buddy:buddy stats` | Show detailed 5-dimension stats |
+| `/claude-buddy:buddy rename <name>` | Give your pet a name |
+| `/claude-buddy:buddy sidebar start` | Start real-time tmux sidebar |
 
 ### Hooks (automatic)
 
@@ -72,7 +73,7 @@ The sidebar shows your pet as live ASCII art that reacts to your coding in real-
 
 **Start from Claude Code:**
 ```
-/buddy sidebar start
+/claude-buddy:buddy sidebar start
 ```
 
 Claude will automatically open a tmux pane with the sidebar. No manual setup needed.
@@ -181,11 +182,11 @@ rm -rf ~/.claude/plugins/cache/claude-buddy
 /plugin install claude-buddy@claude-buddy
 ```
 
-**`/buddy` says "Unknown skill"?**
+**`/claude-buddy:buddy` says "Unknown skill"?**
 Plugin not installed. Run the installation commands above.
 
 **Sidebar not showing?**
-Run `/buddy sidebar start` in Claude Code — it will open a tmux pane automatically.
+Run `/claude-buddy:buddy sidebar start` in Claude Code — it will open a tmux pane automatically.
 
 ## License
 
