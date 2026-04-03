@@ -91,7 +91,15 @@ All pet events are logged to `~/.claude-buddy/events.log` as JSON lines.
 When the user asks for real-time pet dynamics or runs `/buddy sidebar start`, use the Bash tool to open a tmux pane:
 
 ```bash
-tmux split-window -h -l 28 "node '${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-sidebar.js'"
+PLUGIN_PATH=$(find ~/.claude/plugins/cache/claude-buddy -name "buddy-sidebar.js" -path "*/src/bin/*" 2>/dev/null | head -1)
+tmux split-window -h -l 28 "node '$PLUGIN_PATH'"
+```
+
+> **Note:** `${CLAUDE_PLUGIN_ROOT}` is NOT available in tmux split-window panes (it's only set by Claude Code for hooks/commands). Use `find` to locate the plugin path instead.
+
+If `find` doesn't locate it, fall back to:
+```bash
+tmux split-window -h -l 28 "node ~/.claude/plugins/cache/claude-buddy/claude-buddy/1.0.0/src/bin/buddy-sidebar.js"
 ```
 
 The sidebar will show:
