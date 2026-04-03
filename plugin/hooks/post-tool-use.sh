@@ -1,6 +1,7 @@
 #!/bin/bash
 # Claude Buddy — post-tool-use hook
 # Fires after Claude uses any tool. The pet reacts!
+# Uses additionalContext to inject reaction into Claude's next turn.
 
 set -euo pipefail
 
@@ -17,7 +18,7 @@ if [ ! -t 0 ]; then
   INPUT=$(cat 2>/dev/null || echo "")
 fi
 
-# Extract tool name (use node since we know it's available)
+# Extract tool name
 TOOL_NAME=""
 TOOL_FILE=""
 if [ -n "$INPUT" ]; then
@@ -45,7 +46,7 @@ if [ -n "$BUDDY_CORE" ] && [ -n "$TOOL_NAME" ]; then
   $BUDDY_CORE tool-use "$TOOL_NAME" "$TOOL_FILE" 2>/dev/null || true
 fi
 
-# Generate a reaction for Claude to see
+# Generate reaction as additionalContext (injected into Claude's next turn)
 BUDDY_REACT=""
 if command -v buddy-react &>/dev/null; then
   BUDDY_REACT="buddy-react"
@@ -56,7 +57,7 @@ fi
 if [ -n "$BUDDY_REACT" ] && [ -n "$TOOL_NAME" ]; then
   REACTION=$($BUDDY_REACT "$TOOL_NAME" "$TOOL_FILE" 2>/dev/null || true)
   if [ -n "$REACTION" ]; then
-    # Only show reaction occasionally to avoid spam
+    # Only react occasionally to avoid spam
     COUNTER_FILE="$BUDDY_HOME/.react-counter"
     COUNT=0
     [ -f "$COUNTER_FILE" ] && COUNT=$(cat "$COUNTER_FILE" 2>/dev/null || echo "0")
@@ -64,9 +65,8 @@ if [ -n "$BUDDY_REACT" ] && [ -n "$TOOL_NAME" ]; then
     echo "$COUNT" > "$COUNTER_FILE"
     
     if [ $((COUNT % 5)) -eq 0 ]; then
-      echo ""
-      echo "$REACTION"
-      echo ""
+      # Output as structured JSON for Claude Code hook system
+      echo "{\"additionalContext\":\"$REACTION\"}"
     fi
   fi
 fi
