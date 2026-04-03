@@ -34,11 +34,11 @@ function setupHooks() {
       return; // hooks dir not found, skip
     }
 
-    // Build hooks config
+    // Build hooks config (Claude Code requires nested format with matchers)
     const buddyHooks = {
-      SessionStart: [{ type: 'command', command: `bash ${hooksDir}/session-start.sh` }],
-      PostToolUse: [{ type: 'command', command: `bash ${hooksDir}/post-tool-use.sh` }],
-      Stop: [{ type: 'command', command: `bash ${hooksDir}/stop.sh` }],
+      SessionStart: [{ hooks: [{ type: 'command', command: `bash ${hooksDir}/session-start.sh` }] }],
+      PostToolUse: [{ matcher: {}, hooks: [{ type: 'command', command: `bash ${hooksDir}/post-tool-use.sh` }] }],
+      Stop: [{ hooks: [{ type: 'command', command: `bash ${hooksDir}/stop.sh` }] }],
     };
 
     if (!settings.hooks) {
@@ -48,9 +48,10 @@ function setupHooks() {
       for (const [event, handlers] of Object.entries(buddyHooks)) {
         // Remove any existing buddy hooks for this event
         if (settings.hooks[event]) {
-          settings.hooks[event] = settings.hooks[event].filter(h =>
-            typeof h.command !== 'string' || !h.command.includes('claude-buddy')
-          );
+          settings.hooks[event] = settings.hooks[event].filter(h => {
+            const cmdStr = JSON.stringify(h.command || '');
+            return !cmdStr.includes('claude-buddy');
+          });
           settings.hooks[event].push(...handlers);
         } else {
           settings.hooks[event] = handlers;
