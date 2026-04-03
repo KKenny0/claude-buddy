@@ -90,27 +90,14 @@ All pet events are logged to `~/.claude-buddy/events.log` as JSON lines.
 
 ## Sidebar (Real-time Pet View)
 
-When the user asks for real-time pet dynamics or runs `/buddy sidebar start`, use the Bash tool to open a tmux pane:
+When the user asks for real-time pet dynamics or runs `/claude-buddy:buddy sidebar start`, use the Bash tool to run the sidebar directly:
 
 ```bash
-PLUGIN_PATH=$(find ~/.claude/plugins/cache/claude-buddy -name "buddy-sidebar.js" -path "*/src/bin/*" 2>/dev/null | head -1)
-tmux split-window -h -l 28 "node '$PLUGIN_PATH'"
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-sidebar.js" --width 28 --height 24
 ```
 
-> **Note:** `${CLAUDE_PLUGIN_ROOT}` is NOT available in tmux split-window panes (it's only set by Claude Code for hooks/commands). Use `find` to locate the plugin path instead.
+This will run as a background task in Claude Code. The user can click the down arrow to view the real-time ASCII art output.
 
-If `find` doesn't locate it, fall back to:
-```bash
-tmux split-window -h -l 28 "node ~/.claude/plugins/cache/claude-buddy/claude-buddy/1.0.0/src/bin/buddy-sidebar.js"
-```
+> **Note:** Do NOT use `tmux split-window` — running it directly as a Bash command lets the user see it in Claude Code's task output panel.
 
-The sidebar will show:
-- ASCII art of the pet that updates in real-time
-- The pet blinks, wags its tail, and changes mood based on events
-- Hunger and energy decay over time
-- Event log showing recent coding activity
-
-To stop the sidebar:
-```bash
-tmux kill-pane -t <pane-id>
-```
+To stop, the user can kill the task from Claude Code's UI.

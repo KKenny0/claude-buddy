@@ -1,43 +1,32 @@
-# /buddy — 你的编程伙伴 🐾
+# /claude-buddy:buddy — 你的编程伙伴 🐾
 
 管理你的虚拟宠物伙伴，让它陪伴你编码！
 
 ## 使用方法
 
-### `buddy hatch` — 孵化一只新宠物
+### `claude-buddy:buddy hatch` — 孵化一只新宠物
 基于你的用户名生成一只独一无二的宠物。
 
-### `buddy` / `buddy status` — 查看宠物状态
+### `claude-buddy:buddy` / `claude-buddy:buddy status` — 查看宠物状态
 显示宠物的当前状态：等级、经验值、属性、心情等。
 
-### `buddy feed` — 喂食
+### `claude-buddy:buddy feed` — 喂食
 降低宠物的饥饿度。
 
-### `buddy play` — 玩耍
+### `claude-buddy:buddy play` — 玩耍
 提升宠物的能量和心情。
 
-### `buddy pet` — 抚摸
+### `claude-buddy:buddy pet` — 抚摸
 增加 2 XP，提升心情。每天最多 20 XP。
 
-### `buddy stats` — 查看详细属性
+### `claude-buddy:buddy stats` — 查看详细属性
 显示五维属性的详细信息。
 
-### `buddy rename <name>` — 重命名
+### `claude-buddy:buddy rename <name>` — 重命名
 给你的宠物取一个新名字。
 
-### `buddy sidebar start` — 启动实时侧栏
-在当前 tmux session 中打开一个新 pane，显示宠物的实时 ASCII art 动画。
-Claude 会自动查找插件路径并启动侧栏。
-
-### `buddy sidebar stop` — 停止侧栏
-
-### 实现方式
-
-使用 Bash 工具执行（注意：tmux pane 无法使用 `${CLAUDE_PLUGIN_ROOT}`）：
-```bash
-PLUGIN_PATH=$(find ~/.claude/plugins/cache/claude-buddy -name "buddy-sidebar.js" -path "*/src/bin/*" | head -1)
-tmux split-window -h -l 28 "node '$PLUGIN_PATH'"
-```
+### `claude-buddy:buddy sidebar start` — 启动实时侧栏
+在 Claude Code 中作为后台任务运行，点击向下箭头查看实时 ASCII art。
 
 ## 实现方式
 
@@ -52,6 +41,11 @@ node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" <command>
 node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" hatch
 node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" status
 node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" feed
+```
+
+启动侧栏：
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-sidebar.js" --width 28 --height 24
 ```
 
 ## 宠物系统
