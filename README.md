@@ -4,6 +4,8 @@
 
 Your coding buddy watches you code, reacts to your actions, and grows with you. Deterministically generated from your username, with 12 species, 5 rarity tiers, shiny variants, and real-time tmux sidebar animations.
 
+![Claude Buddy sidebar demo](docs/images/claude-buddy-sidebar-demo.png)
+
 ## Features
 
 - 🥚 **Deterministic Generation** — SHA-256 based species, rarity, and stats. Same username = same pet.
@@ -80,7 +82,24 @@ Claude will automatically open a tmux pane with the sidebar. No manual setup nee
 
 **Or start manually in tmux:**
 ```bash
-tmux split-window -h -l 28 "node ${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-sidebar.js"
+# First, resolve the plugin root to an absolute path
+PLUGIN_ROOT="$(find ~/.claude/plugins -path '*/claude-buddy/plugin' -type d | head -n 1)"
+
+# Then start the sidebar with the absolute path
+tmux split-window -h -l 28 "node \"$PLUGIN_ROOT/src/bin/buddy-sidebar.js\""
+```
+
+When starting the sidebar from your own shell or tmux config, use an absolute path.
+`${CLAUDE_PLUGIN_ROOT}` is available inside Claude Code's plugin runtime, but it is usually not defined in a regular tmux shell, which can cause the pane to exit immediately.
+
+If you want to confirm the path manually, you can also run:
+```bash
+find ~/.claude/plugins -path '*/claude-buddy/plugin' -type d
+```
+
+Typical marketplace install path:
+```bash
+~/.claude/plugins/marketplaces/claude-buddy/plugin
 ```
 
 The sidebar features:

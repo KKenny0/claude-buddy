@@ -19,7 +19,7 @@ process.on('unhandledRejection', (reason) => {
 const fs = require('fs');
 const path = require('path');
 const { SPECIES } = require('../data/species');
-const { readPet, getBuddyHome } = require('../storage');
+const { readPet, getBuddyHome, ensureSetup } = require('../storage');
 
 // ANSI escape codes
 const ESC = '\x1b[';
@@ -114,7 +114,10 @@ function getPetArt(p) {
 
 /** Render the full sidebar */
 function render() {
-  if (!pet) return;
+  if (!pet) {
+    renderEmptyState();
+    return;
+  }
 
   const lines = [];
   const rc = rarityColors[pet.rarity] ?? colors.white;
@@ -172,6 +175,25 @@ function render() {
   // Clear and draw
   const output = CLEAR + lines.join('\n');
   process.stdout.write(output);
+}
+
+function renderEmptyState() {
+  const lines = [];
+  lines.push(`${colors.dim}┌${'─'.repeat(width - 2)}┐${colors.reset}`);
+  lines.push(`${colors.dim}│${colors.reset} ${colors.bold}🐣 Claude Buddy${colors.reset}${' '.repeat(Math.max(0, width - 18))}${colors.dim}│${colors.reset}`);
+  lines.push(`${colors.dim}├${'─'.repeat(width - 2)}┤${colors.reset}`);
+
+  for (const line of wrapText('还没有宠物。先运行 hatch，侧栏会自动继续刷新。', width - 4)) {
+    lines.push(`${colors.dim}│${colors.reset} ${line.padEnd(width - 4)} ${colors.dim}│${colors.reset}`);
+  }
+
+  lines.push(`${colors.dim}│${colors.reset} ${' '.repeat(width - 4)} ${colors.dim}│${colors.reset}`);
+  for (const line of wrapText('建议在 Claude Code 里运行 /claude-buddy:buddy hatch', width - 4)) {
+    lines.push(`${colors.dim}│${colors.reset} ${colors.yellow}${line.padEnd(width - 4)}${colors.reset} ${colors.dim}│${colors.reset}`);
+  }
+
+  lines.push(`${colors.dim}└${'─'.repeat(width - 2)}┘${colors.reset}`);
+  process.stdout.write(CLEAR + lines.join('\n'));
 }
 
 /** Calculate XP progress within current level (matches core.js logic) */
@@ -302,14 +324,11 @@ function handleEvent(event) {
 
 /** Main loop */
 function main() {
+  ensureSetup();
   process.stdout.write(CLEAR);
 
   // Initial load
   pet = readPet();
-  if (!pet) {
-    console.log('No pet found. Run: buddy-core hatch');
-    process.exit(1);
-  }
   render();
 
   // Watch for events
