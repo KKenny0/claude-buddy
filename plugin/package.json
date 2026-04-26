@@ -6,7 +6,8 @@
   "bin": {
     "buddy-core": "./src/bin/buddy-core.js",
     "buddy-react": "./src/bin/buddy-react.js",
-    "buddy-sidebar": "./src/bin/buddy-sidebar.js"
+    "buddy-sidebar": "./src/bin/buddy-sidebar.js",
+    "buddy-statusline": "./src/bin/buddy-statusline.js"
   },
   "keywords": ["claude", "pet", "companion", "tmux"],
   "license": "MIT"

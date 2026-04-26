@@ -281,6 +281,7 @@ Events are written as JSON lines to `~/.claude-buddy/events.log`:
 ├── pet.json           # Current pet state (read/write by all components)
 ├── events.log         # Append-only event stream
 ├── config.json        # User preferences (sidebar enabled, etc.)
+├── session.json       # Recent events, presence mode, error/recovery state
 ├── history.json       # Level milestones, streak history
 └── achievements.json  # Unlocked achievements
 ```
@@ -305,8 +306,14 @@ All writes go through a simple lock file mechanism:
 | `/buddy stats` | Show detailed stats |
 | `/buddy rename <name>` | Rename pet |
 | `/buddy evolve` | Check evolution progress |
-| `/buddy sidebar start` | Start tmux sidebar |
-| `/buddy sidebar stop` | Stop tmux sidebar |
+| `/buddy live` | Install native Claude Code statusline |
+| `/buddy statusline remove` | Remove Buddy statusline |
+| `/buddy sidebar start` | Start detached/tmux sidebar |
+| `/buddy sidebar stop` | Stop detached/tmux sidebar |
+| `/buddy quiet` | Minimal Buddy conversation presence |
+| `/buddy focus` | Balanced presence (default) |
+| `/buddy lively` | More active Buddy reactions |
+| `/buddy events` | Show recent Buddy events |
 
 ---
 

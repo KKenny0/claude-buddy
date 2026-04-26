@@ -21,6 +21,8 @@ fi
 # Extract tool name
 TOOL_NAME=""
 TOOL_FILE=""
+TOOL_COMMAND=""
+HOOK_EXIT_CODE=""
 if [ -n "$INPUT" ]; then
   TOOL_NAME=$(echo "$INPUT" | node -e "
     let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
@@ -28,7 +30,15 @@ if [ -n "$INPUT" ]; then
     })" 2>/dev/null || true)
   TOOL_FILE=$(echo "$INPUT" | node -e "
     let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
-      try{const j=JSON.parse(d);console.log(j.file_path||j.file||j.path||'')}catch(e){console.log('')}
+      try{const j=JSON.parse(d);const i=j.tool_input||j.input||{};console.log(j.file_path||j.file||j.path||i.file_path||i.file||i.path||'')}catch(e){console.log('')}
+    })" 2>/dev/null || true)
+  TOOL_COMMAND=$(echo "$INPUT" | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      try{const j=JSON.parse(d);const i=j.tool_input||j.input||{};console.log(i.command||j.command||'')}catch(e){console.log('')}
+    })" 2>/dev/null || true)
+  HOOK_EXIT_CODE=$(echo "$INPUT" | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      try{const j=JSON.parse(d);const r=j.tool_response||j.response||{};console.log(j.exit_code??r.exit_code??'')}catch(e){console.log('')}
     })" 2>/dev/null || true)
 fi
 
@@ -41,32 +51,23 @@ elif [ -f "$PLUGIN_DIR/src/bin/buddy-core.js" ]; then
 fi
 
 if [ -n "$BUDDY_CORE" ] && [ -n "$TOOL_NAME" ]; then
-  TOOL_EXIT_CODE="${TOOL_EXIT_CODE:-0}"
+  TOOL_EXIT_CODE="${TOOL_EXIT_CODE:-${HOOK_EXIT_CODE:-0}}"
   export TOOL_EXIT_CODE
-  $BUDDY_CORE tool-use "$TOOL_NAME" "$TOOL_FILE" 2>/dev/null || true
+  BUDDY_RESULT=$($BUDDY_CORE tool-use "$TOOL_NAME" "$TOOL_FILE" "$TOOL_COMMAND" --json 2>/dev/null || true)
 fi
 
-# Generate reaction as additionalContext (injected into Claude's next turn)
-BUDDY_REACT=""
-if command -v buddy-react &>/dev/null; then
-  BUDDY_REACT="buddy-react"
-elif [ -f "$PLUGIN_DIR/src/bin/buddy-react.js" ]; then
-  BUDDY_REACT="node $PLUGIN_DIR/src/bin/buddy-react.js"
-fi
-
-if [ -n "$BUDDY_REACT" ] && [ -n "$TOOL_NAME" ]; then
-  REACTION=$($BUDDY_REACT "$TOOL_NAME" "$TOOL_FILE" 2>/dev/null || true)
-  if [ -n "$REACTION" ]; then
-    # Only react occasionally to avoid spam
-    COUNTER_FILE="$BUDDY_HOME/.react-counter"
-    COUNT=0
-    [ -f "$COUNTER_FILE" ] && COUNT=$(cat "$COUNTER_FILE" 2>/dev/null || echo "0")
-    COUNT=$((COUNT + 1))
-    echo "$COUNT" > "$COUNTER_FILE"
-    
-    if [ $((COUNT % 5)) -eq 0 ]; then
-      # Output as structured JSON for Claude Code hook system
-      echo "{\"additionalContext\":\"$REACTION\"}"
-    fi
-  fi
+if [ -n "${BUDDY_RESULT:-}" ]; then
+  printf '%s' "$BUDDY_RESULT" | node -e "
+    let d='';
+    process.stdin.on('data',c=>d+=c);
+    process.stdin.on('end',()=>{
+      try {
+        const payload = JSON.parse(d);
+        const reaction = payload.reaction;
+        if (reaction && Array.isArray(reaction.surface) && reaction.surface.includes('conversation') && reaction.text) {
+          console.log(JSON.stringify({ additionalContext: reaction.text }));
+        }
+      } catch {}
+    });
+  " 2>/dev/null || true
 fi

@@ -9,6 +9,7 @@ A virtual pet companion for Claude Code coding sessions.
 - 📊 **5-Dimension Stats** — Debug, Patience, Chaos, Wisdom, Snark
 - 📈 **XP & Leveling** — 20 levels with multiple XP sources
 - 🎭 **Dynamic Reactions** — Pet reacts to your coding activities
+- 📟 **Native Statusline** — Always-visible Buddy status in Claude Code
 - 🖥️ **tmux Sidebar** — Real-time ASCII art with animations
 - 💾 **Persistent State** — Global `~/.claude-buddy/` storage
 
@@ -86,7 +87,13 @@ buddy-sidebar --width 28 --height 24
 | `buddy-core pet` | Pet the pet (+2 XP) |
 | `buddy-core stats` | Show detailed stats |
 | `buddy-core rename <name>` | Rename pet |
-| `buddy-sidebar` | Start tmux sidebar |
+| `buddy-core live` | Install native Claude Code Buddy statusline |
+| `buddy-core statusline remove` | Remove Buddy statusline |
+| `buddy-core sidebar start` | Start detached/tmux sidebar |
+| `buddy-core sidebar stop` | Stop detached sidebar |
+| `buddy-core quiet/focus/lively` | Set Buddy presence mode |
+| `buddy-core events` | Show recent Buddy events |
+| `buddy-sidebar` | Start renderer directly |
 
 ## Species
 
@@ -117,13 +124,18 @@ buddy-sidebar --width 28 --height 24
 | Streak bonus | +5 × streak |
 | Error recovery | +3 |
 
-## tmux Sidebar
+## Statusline and Sidebar
 
 ```bash
-# Split tmux window
-tmux split-window -h -l 28 "buddy-sidebar"
+# Native Claude Code statusline
+buddy-core live
+buddy-core statusline remove
 
-# Or with custom size
+# Detached/tmux sidebar
+buddy-core sidebar start
+buddy-core sidebar stop
+
+# Direct renderer with custom size
 buddy-sidebar --width 32 --height 30
 ```
 
@@ -133,6 +145,8 @@ The sidebar features:
 - Event-driven reactions
 - Mood/hunger/energy decay
 - Rarity-colored UI
+- Recent event timeline
+- Presence modes: quiet, focus, lively
 
 ## Data Location
 
@@ -141,6 +155,7 @@ All data stored in `~/.claude-buddy/`:
 - `events.log` — Event stream
 - `config.json` — User preferences
 - `history.json` — Level milestones
+- `session.json` — Recent events and current session dynamics
 
 ## License
 

@@ -20,19 +20,24 @@ elif [ -f "$PLUGIN_DIR/src/bin/buddy-core.js" ]; then
 fi
 
 if [ -n "$BUDDY_CORE" ]; then
-  $BUDDY_CORE session-stop 2>/dev/null || true
+  BUDDY_RESULT=$($BUDDY_CORE session-stop --json 2>/dev/null || true)
 fi
 
-# Generate goodbye as additionalContext
-NAME=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.name||'Buddy')" 2>/dev/null || echo "Buddy")
-SPECIES=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.speciesEmoji||'🐱')" 2>/dev/null || echo "🐱")
-MOOD=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.mood||'happy')" 2>/dev/null || echo "happy")
-STREAK=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.streak||0)" 2>/dev/null || echo "0")
-
-GOODBYE="${SPECIES} ${NAME} 打了个哈欠...今天辛苦了！明天见 🌙 连续编码: ${STREAK}天"
-
-# Output as structured JSON for Claude Code
-echo "{\"additionalContext\":\"$GOODBYE\"}"
+if [ -n "${BUDDY_RESULT:-}" ]; then
+  printf '%s' "$BUDDY_RESULT" | node -e "
+    let d='';
+    process.stdin.on('data',c=>d+=c);
+    process.stdin.on('end',()=>{
+      try {
+        const payload = JSON.parse(d);
+        const reaction = payload.reaction;
+        if (reaction && reaction.text) {
+          console.log(JSON.stringify({ additionalContext: reaction.text }));
+        }
+      } catch {}
+    });
+  " 2>/dev/null || true
+fi
 
 # Reset reaction counter for next session
 rm -f "$BUDDY_HOME/.react-counter" 2>/dev/null || true
