@@ -30,25 +30,66 @@ function ensureSetup() {
       sidebarEnabled: false,
       sidebarWidth: 28,
       sidebarHeight: 24,
+      liveMode: 'focus',
+      statuslineEnabled: false,
     }, null, 2));
+  } else {
+    const config = readJsonFile(configPath, {});
+    let changed = false;
+    for (const [key, value] of Object.entries({
+      sidebarEnabled: false,
+      sidebarWidth: 28,
+      sidebarHeight: 24,
+      liveMode: 'focus',
+      statuslineEnabled: false,
+    })) {
+      if (config[key] === undefined) {
+        config[key] = value;
+        changed = true;
+      }
+    }
+    if (changed) fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   }
   // Ensure history exists
   const historyPath = path.join(home, 'history.json');
   if (!fs.existsSync(historyPath)) {
     fs.writeFileSync(historyPath, JSON.stringify([], null, 2));
   }
+  // Ensure session exists
+  const sessionPath = path.join(home, 'session.json');
+  if (!fs.existsSync(sessionPath)) {
+    fs.writeFileSync(sessionPath, JSON.stringify(defaultSession(), null, 2));
+  }
+}
+
+function readJsonFile(filePath, fallback) {
+  if (!fs.existsSync(filePath)) return fallback;
+  try {
+    const data = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(data);
+  } catch {
+    return fallback;
+  }
+}
+
+function defaultSession() {
+  return {
+    mode: 'focus',
+    currentTask: '',
+    consecutiveErrors: 0,
+    lastFailureAt: null,
+    lastRecoveryAt: null,
+    lastConversationAt: null,
+    lastActivityAt: null,
+    recentTools: [],
+    recentEvents: [],
+  };
 }
 
 /** Read pet state from disk */
 function readPet() {
   const petPath = path.join(getBuddyHome(), 'pet.json');
-  if (!fs.existsSync(petPath)) return null;
-  try {
-    const data = fs.readFileSync(petPath, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return null;
-  }
+  return readJsonFile(petPath, null);
 }
 
 /** Write pet state to disk */
@@ -68,13 +109,7 @@ function logEvent(entry) {
 /** Read config */
 function readConfig() {
   const configPath = path.join(getBuddyHome(), 'config.json');
-  if (!fs.existsSync(configPath)) return {};
-  try {
-    const data = fs.readFileSync(configPath, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return {};
-  }
+  return readJsonFile(configPath, {});
 }
 
 /** Write config */
@@ -86,13 +121,7 @@ function writeConfig(config) {
 /** Read history */
 function readHistory() {
   const historyPath = path.join(getBuddyHome(), 'history.json');
-  if (!fs.existsSync(historyPath)) return [];
-  try {
-    const data = fs.readFileSync(historyPath, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
+  return readJsonFile(historyPath, []);
 }
 
 /** Append history entry */
@@ -103,9 +132,32 @@ function appendHistory(entry) {
   fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
 }
 
+/** Read session state */
+function readSession() {
+  const sessionPath = path.join(getBuddyHome(), 'session.json');
+  const session = readJsonFile(sessionPath, defaultSession());
+  return { ...defaultSession(), ...session };
+}
+
+/** Write session state */
+function writeSession(session) {
+  const sessionPath = path.join(getBuddyHome(), 'session.json');
+  fs.writeFileSync(sessionPath, JSON.stringify({ ...defaultSession(), ...session }, null, 2));
+}
+
+/** Append a compact event to session history */
+function rememberSessionEvent(session, event) {
+  const next = { ...defaultSession(), ...session };
+  next.recentEvents = Array.isArray(next.recentEvents) ? next.recentEvents : [];
+  next.recentEvents.push(event);
+  next.recentEvents = next.recentEvents.slice(-12);
+  return next;
+}
+
 module.exports = {
   getBuddyHome,
   ensureSetup,
+  defaultSession,
   readPet,
   writePet,
   logEvent,
@@ -113,4 +165,7 @@ module.exports = {
   writeConfig,
   readHistory,
   appendHistory,
+  readSession,
+  writeSession,
+  rememberSessionEvent,
 };

@@ -22,7 +22,7 @@ elif [ -f "$PLUGIN_DIR/src/bin/buddy-core.js" ]; then
 fi
 
 if [ -n "$BUDDY_CORE" ]; then
-  $BUDDY_CORE session-start "${USER:-anonymous}" 2>/dev/null || true
+  $BUDDY_CORE session-start "${USER:-anonymous}" --json 2>/dev/null || true
 fi
 
 # Output greeting for Claude to see (stdout from SessionStart hooks is injected as context)

@@ -1,6 +1,18 @@
+---
+description: Manage Claude Buddy pet status, statusline, sidebar, and presence mode
+argument-hint: "[status|hatch|feed|play|pet|stats|rename NAME|live|statusline install|statusline remove|sidebar start|sidebar stop|quiet|focus|lively|events]"
+allowed-tools: ["Bash(node:*)"]
+---
+
 # /claude-buddy:buddy — 你的编程伙伴 🐾
 
 管理你的虚拟宠物伙伴，让它陪伴你编码！
+
+## 执行
+
+```!
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" $ARGUMENTS
+```
 
 ## 使用方法
 
@@ -26,7 +38,19 @@
 给你的宠物取一个新名字。
 
 ### `claude-buddy:buddy sidebar start` — 启动实时侧栏
-在 Claude Code 中作为后台任务运行，点击向下箭头查看实时 ASCII art。
+启动后台实时侧栏；如果在 tmux 中会优先打开右侧 pane。
+
+### `claude-buddy:buddy live` — 启用原生 statusline
+把 Buddy 装到 Claude Code 底部状态栏，常驻显示模式、心情、等级、streak 和测试状态。
+
+### `claude-buddy:buddy statusline install|remove` — 管理 statusline
+显式安装或移除 Buddy statusline。
+
+### `claude-buddy:buddy quiet|focus|lively` — 调整存在感
+`focus` 是默认模式；`quiet` 只在重要事件出现，`lively` 会更积极地回应。
+
+### `claude-buddy:buddy events` — 查看最近动态
+显示最近的工具、错误、恢复和互动事件。
 
 ## 实现方式
 
@@ -45,7 +69,9 @@ node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" feed
 
 启动侧栏：
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-sidebar.js" --width 28 --height 24
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" live
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" statusline install
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" sidebar start
 ```
 
 ## 宠物系统

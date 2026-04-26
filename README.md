@@ -13,6 +13,7 @@ Your coding buddy watches you code, reacts to your actions, and grows with you. 
 - 📊 **5-Dimension Stats** — Debug, Patience, Chaos, Wisdom, Snark
 - 📈 **XP & Leveling** — 20 levels with 7 XP sources (coding, commits, streaks...)
 - 🎭 **Dynamic Reactions** — Pet reacts to your coding activities via hooks
+- 📟 **Native Statusline** — Always-visible Buddy mood, mode, streak, and test status
 - 🖥️ **tmux Sidebar** — Real-time ASCII art with blink, tail-wag, and shiny animations
 - 💾 **Persistent State** — Global `~/.claude-buddy/` storage, survives sessions
 
@@ -59,7 +60,13 @@ After installation, commands are prefixed with the plugin name:
 | `/claude-buddy:buddy pet` | Pet your buddy (+2 XP, daily cap 20) |
 | `/claude-buddy:buddy stats` | Show detailed 5-dimension stats |
 | `/claude-buddy:buddy rename <name>` | Give your pet a name |
-| `/claude-buddy:buddy sidebar start` | Start real-time tmux sidebar |
+| `/claude-buddy:buddy live` | Install the native Claude Code Buddy statusline |
+| `/claude-buddy:buddy statusline remove` | Remove Buddy from the statusline |
+| `/claude-buddy:buddy sidebar start` | Start detached/tmux sidebar |
+| `/claude-buddy:buddy quiet` | Minimal Buddy conversation presence |
+| `/claude-buddy:buddy focus` | Balanced presence (default) |
+| `/claude-buddy:buddy lively` | More active Buddy reactions |
+| `/claude-buddy:buddy events` | Show recent Buddy activity |
 
 ### Hooks (automatic)
 
@@ -69,16 +76,28 @@ No setup needed. Once installed, the plugin hooks fire automatically:
 - **After each tool use** — Pet reacts (curious, focused, tense, relaxed...)
 - **Session end** — Pet says goodbye
 
-### tmux Sidebar — Real-time Pet 🖥️
+### Native Statusline — Always-visible Buddy 🖥️
 
-The sidebar shows your pet as live ASCII art that reacts to your coding in real-time.
+The statusline keeps Buddy visible without opening a background task panel.
 
 **Start from Claude Code:**
 ```
-/claude-buddy:buddy sidebar start
+/claude-buddy:buddy live
 ```
 
-Claude will automatically open a tmux pane with the sidebar. No manual setup needed.
+Claude Buddy will configure Claude Code's native `statusLine` with a compact line like:
+
+```
+buddy: lively | 🐉 火火 focused | Lv.1 50% | streak 0d | tests green
+```
+
+**Detached or tmux sidebar:**
+```
+/claude-buddy:buddy sidebar start
+/claude-buddy:buddy sidebar stop
+```
+
+If Claude Buddy detects tmux, `sidebar start` opens a right pane. Otherwise it starts a detached process and tells you how to open a foreground view.
 
 **Or start manually in tmux:**
 ```bash
@@ -109,6 +128,7 @@ The sidebar features:
 - Shiny sparkle effects ✨
 - Mood/hunger/energy decay over time
 - Real-time event reactions (coding, errors, idle...)
+- Recent event timeline and presence mode status
 
 ## Species
 
@@ -171,6 +191,7 @@ All data stored in `~/.claude-buddy/`:
 | `events.log` | Event stream (append-only) |
 | `config.json` | User preferences |
 | `history.json` | Level milestones & streak history |
+| `session.json` | Recent events, presence mode, error/recovery state |
 
 ## How It Works
 

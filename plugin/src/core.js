@@ -5,7 +5,18 @@
 
 const crypto = require('crypto');
 const { SPECIES, NAME_SUGGESTIONS, HATS } = require('./data/species');
-const { ensureSetup, readPet, writePet, logEvent, appendHistory } = require('./storage');
+const {
+  ensureSetup,
+  readPet,
+  writePet,
+  logEvent,
+  appendHistory,
+  readConfig,
+  writeConfig,
+  readSession,
+  writeSession,
+  rememberSessionEvent,
+} = require('./storage');
 
 /** XP required for each level (index = level, value = total XP needed) */
 const LEVEL_XP = {
@@ -24,6 +35,164 @@ function xpForLevel(level) {
 function xpToNextLevel(level) {
   if (level >= 20) return 0;
   return xpForLevel(level + 1) - xpForLevel(level);
+}
+
+function normalizeMode(mode) {
+  return ['quiet', 'focus', 'lively'].includes(mode) ? mode : 'focus';
+}
+
+function getLiveMode() {
+  const config = readConfig();
+  const session = readSession();
+  return normalizeMode(session.mode || config.liveMode);
+}
+
+function setLiveMode(mode) {
+  const nextMode = normalizeMode(mode);
+  const config = readConfig();
+  config.liveMode = nextMode;
+  writeConfig(config);
+
+  const session = readSession();
+  session.mode = nextMode;
+  writeSession(session);
+  return nextMode;
+}
+
+function shouldSurfaceToConversation(priority, mode, session = readSession()) {
+  const currentMode = normalizeMode(mode);
+  if (priority === 'critical') return true;
+  const last = session.lastConversationAt ? Date.parse(session.lastConversationAt) : 0;
+  const cooldownMs = currentMode === 'lively' ? 8000 : 20000;
+  if (last && Date.now() - last < cooldownMs && priority !== 'level_up' && priority !== 'interaction') {
+    return false;
+  }
+  if (currentMode === 'quiet') return priority === 'level_up' || priority === 'interaction';
+  if (currentMode === 'lively') return ['normal', 'important', 'level_up', 'interaction'].includes(priority);
+  return ['important', 'level_up', 'interaction'].includes(priority);
+}
+
+function createReaction(pet, text, mood, priority, mode, ttlMs = 8000) {
+  const session = readSession();
+  const surface = ['live'];
+  if (shouldSurfaceToConversation(priority, mode, session)) {
+    surface.push('conversation');
+  }
+  return {
+    text,
+    mood,
+    priority,
+    surface,
+    ttlMs,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function isTestCommand(command) {
+  return /\b(test|tests|pytest|vitest|jest|mocha|npm\s+test|pnpm\s+test|yarn\s+test|cargo\s+test|go\s+test)\b/i.test(command || '');
+}
+
+function isCheckCommand(command) {
+  return /\b(check|lint|typecheck|tsc|build)\b/i.test(command || '');
+}
+
+function rememberEvent(event) {
+  const session = readSession();
+  if (event.type !== 'session_start' && event.reaction?.surface?.includes('conversation')) {
+    session.lastConversationAt = event.timestamp || new Date().toISOString();
+  }
+  const summary = {
+    type: event.type,
+    tool: event.tool,
+    file: event.file,
+    text: event.reaction?.text || event.message || '',
+    mood: event.reaction?.mood,
+    priority: event.reaction?.priority || event.importance,
+    timestamp: event.timestamp,
+  };
+  writeSession(rememberSessionEvent(session, summary));
+  logEvent(event);
+}
+
+function updateSessionForTool(session, tool, file, command, failed) {
+  const now = new Date().toISOString();
+  const next = { ...session };
+  next.lastActivityAt = now;
+  next.recentTools = Array.isArray(next.recentTools) ? next.recentTools : [];
+  next.recentTools.push({ tool, file, command, failed, timestamp: now });
+  next.recentTools = next.recentTools.slice(-20);
+
+  if (failed) {
+    next.consecutiveErrors = (next.consecutiveErrors || 0) + 1;
+    next.lastFailureAt = now;
+  } else if ((next.consecutiveErrors || 0) > 0) {
+    next.lastRecoveryAt = now;
+    next.consecutiveErrors = 0;
+  }
+
+  if (file) {
+    const recentSameFile = next.recentTools.filter((item) => item.file && item.file === file).length;
+    if (recentSameFile >= 5) {
+      next.currentTask = `Working around ${file}`;
+    }
+  }
+
+  if (isTestCommand(command)) {
+    next.lastTestStatus = failed ? 'red' : 'green';
+    next.lastTestAt = now;
+  }
+
+  return next;
+}
+
+function reactionForTool(pet, tool, file, command, failed, recovered, mode) {
+  const name = pet.name;
+  const emoji = pet.speciesEmoji;
+  const lowerTool = String(tool || '').toLowerCase();
+
+  if (failed) {
+    const critical = lowerTool === 'bash' || lowerTool === 'shell';
+    return createReaction(
+      pet,
+      critical
+        ? `${emoji} ${name} 盯着失败的命令，轻轻提醒你先看最后几行输出。`
+        : `${emoji} ${name} 注意到刚才的操作失败了，先稳住节奏。`,
+      'worried',
+      critical ? 'critical' : 'important',
+      mode,
+      10000,
+    );
+  }
+
+  if (recovered) {
+    return createReaction(pet, `${emoji} ${name} 看到你从错误里恢复过来，放松地晃了晃。`, 'happy', 'important', mode);
+  }
+
+  if (lowerTool === 'bash' && isTestCommand(command)) {
+    return createReaction(pet, `${emoji} ${name} 注意到测试通过了，安静地松了一口气。`, 'happy', 'important', mode);
+  }
+
+  if (lowerTool === 'bash' && isCheckCommand(command)) {
+    return createReaction(pet, `${emoji} ${name} 看完检查结果，继续保持专注。`, 'focused', 'important', mode);
+  }
+
+  switch (lowerTool) {
+    case 'write':
+      return createReaction(pet, `${emoji} ${name} 好奇地凑近，看你写下新的代码。`, 'focused', 'normal', mode);
+    case 'edit':
+    case 'multiedit':
+      return createReaction(pet, `${emoji} ${name} 跟着你的改动移动视线。`, 'focused', 'normal', mode);
+    case 'bash':
+      return createReaction(pet, `${emoji} ${name} 看着终端输出，保持警觉。`, pet.stats.chaos > 60 ? 'excited' : 'focused', 'normal', mode);
+    case 'read':
+      return createReaction(pet, `${emoji} ${name} 安静地陪你读代码。`, 'focused', 'normal', mode);
+    case 'grep':
+    case 'search':
+    case 'glob':
+      return createReaction(pet, `${emoji} ${name} 在文件堆里帮你留意线索。`, 'focused', 'normal', mode);
+    default:
+      return createReaction(pet, `${emoji} ${name} 在一旁观察当前操作。`, 'focused', 'normal', mode);
+  }
 }
 
 /** Determine rarity from hash */
@@ -129,7 +298,18 @@ function generatePet(username) {
 
   writePet(pet);
   appendHistory({ level: 1, timestamp: pet.createdAt, event: 'hatched' });
-  logEvent({ type: 'session_start', message: `${pet.name} the ${pet.rarity} ${pet.speciesName} hatched!`, timestamp: new Date().toISOString() });
+  const mode = getLiveMode();
+  const reaction = createReaction(pet, `${pet.speciesEmoji} ${pet.name} 刚刚孵化，正在熟悉你的工作区。`, 'happy', 'important', mode);
+  pet.lastReaction = reaction;
+  writePet(pet);
+  rememberEvent({
+    type: 'session_start',
+    message: `${pet.name} the ${pet.rarity} ${pet.speciesName} hatched!`,
+    importance: reaction.priority,
+    surface: reaction.surface,
+    reaction,
+    timestamp: new Date().toISOString(),
+  });
 
   return pet;
 }
@@ -175,8 +355,11 @@ function feedPet(pet) {
   pet.hunger = Math.max(0, pet.hunger - 30);
   pet.mood = 'happy';
   pet.lastActive = new Date().toISOString();
+  const mode = getLiveMode();
+  const reaction = createReaction(pet, `${pet.speciesEmoji} ${pet.name} 开心地吃完了，精神回来了。`, 'happy', 'interaction', mode);
+  pet.lastReaction = reaction;
   writePet(pet);
-  logEvent({ type: 'interaction', command: 'feed', message: `${pet.name} was fed!`, timestamp: new Date().toISOString() });
+  rememberEvent({ type: 'interaction', command: 'feed', message: `${pet.name} was fed!`, importance: reaction.priority, surface: reaction.surface, reaction, timestamp: new Date().toISOString() });
   return pet;
 }
 
@@ -186,8 +369,11 @@ function playWithPet(pet) {
   pet.hunger = Math.min(100, pet.hunger + 10);
   pet.mood = 'excited';
   pet.lastActive = new Date().toISOString();
+  const mode = getLiveMode();
+  const reaction = createReaction(pet, `${pet.speciesEmoji} ${pet.name} 玩得很开心，尾巴都快晃出残影了。`, 'excited', 'interaction', mode);
+  pet.lastReaction = reaction;
   writePet(pet);
-  logEvent({ type: 'interaction', command: 'play', message: `Played with ${pet.name}!`, timestamp: new Date().toISOString() });
+  rememberEvent({ type: 'interaction', command: 'play', message: `Played with ${pet.name}!`, importance: reaction.priority, surface: reaction.surface, reaction, timestamp: new Date().toISOString() });
   return pet;
 }
 
@@ -199,8 +385,11 @@ function petPet(pet) {
   }
   pet.mood = 'happy';
   pet.lastActive = new Date().toISOString();
+  const mode = getLiveMode();
+  const reaction = createReaction(pet, `${pet.speciesEmoji} ${pet.name} 舒服地眯起眼睛。`, 'happy', 'interaction', mode);
+  pet.lastReaction = reaction;
   writePet(pet);
-  logEvent({ type: 'interaction', command: 'pet', message: `Petted ${pet.name}!`, timestamp: new Date().toISOString() });
+  rememberEvent({ type: 'interaction', command: 'pet', message: `Petted ${pet.name}!`, importance: reaction.priority, surface: reaction.surface, reaction, timestamp: new Date().toISOString() });
   return pet;
 }
 
@@ -209,8 +398,11 @@ function renamePet(pet, newName) {
   const oldName = pet.name;
   pet.name = newName;
   pet.lastActive = new Date().toISOString();
+  const mode = getLiveMode();
+  const reaction = createReaction(pet, `${pet.speciesEmoji} ${oldName} 接受了新名字：${newName}。`, 'happy', 'interaction', mode);
+  pet.lastReaction = reaction;
   writePet(pet);
-  logEvent({ type: 'interaction', command: 'rename', message: `${oldName} renamed to ${newName}`, timestamp: new Date().toISOString() });
+  rememberEvent({ type: 'interaction', command: 'rename', message: `${oldName} renamed to ${newName}`, importance: reaction.priority, surface: reaction.surface, reaction, timestamp: new Date().toISOString() });
   return pet;
 }
 
@@ -244,13 +436,22 @@ function onSessionStart(pet) {
   pet.mood = 'happy';
   pet.energy = Math.min(100, pet.energy + 20);
   pet.lastActive = new Date().toISOString();
+  const mode = getLiveMode();
+  const reaction = createReaction(pet, `${pet.speciesEmoji} ${pet.name} 醒来了，安静地待在你的终端旁边。`, 'happy', 'important', mode);
+  pet.lastReaction = reaction;
   writePet(pet);
-  logEvent({ type: 'session_start', message: `${pet.name} woke up!`, timestamp: new Date().toISOString() });
+  rememberEvent({ type: 'session_start', message: `${pet.name} woke up!`, importance: reaction.priority, surface: reaction.surface, reaction, timestamp: new Date().toISOString() });
   return pet;
 }
 
 /** Handle tool use */
-function onToolUse(pet, tool, file) {
+function onToolUse(pet, tool, file, options = {}) {
+  const sessionBefore = readSession();
+  const failed = Boolean(options.failed);
+  const command = options.command || '';
+  const recovered = !failed && (sessionBefore.consecutiveErrors || 0) > 0;
+  const oldLevel = pet.level;
+
   pet.toolUseCount += 1;
   pet.lastActive = new Date().toISOString();
 
@@ -282,18 +483,75 @@ function onToolUse(pet, tool, file) {
       pet.hunger = Math.min(100, pet.hunger + 1);
   }
 
+  const session = updateSessionForTool(sessionBefore, tool, file, command, failed);
+  writeSession(session);
+
+  const mode = normalizeMode(session.mode || readConfig().liveMode);
+  let reaction = reactionForTool(pet, tool, file, command, failed, recovered, mode);
+  const sameFileEvents = file ? session.recentTools.filter((item) => item.file === file).length : 0;
+  if (!failed && sameFileEvents >= 5 && ['edit', 'multiedit', 'write'].includes(String(tool).toLowerCase())) {
+    reaction = createReaction(pet, `${pet.speciesEmoji} ${pet.name} 注意到你一直在打磨 ${file}，保持专注。`, 'focused', 'important', mode);
+  }
+  if (pet.level > oldLevel) {
+    reaction = createReaction(pet, `${pet.speciesEmoji} ${pet.name} 升到了 Lv.${pet.level}。`, 'excited', 'level_up', mode, 10000);
+  }
+  pet.mood = reaction.mood;
+  pet.lastReaction = reaction;
   writePet(pet);
-  logEvent({ type: 'tool_use', tool, file, timestamp: new Date().toISOString() });
+  rememberEvent({
+    type: 'tool_use',
+    tool,
+    file,
+    command,
+    importance: reaction.priority,
+    surface: reaction.surface,
+    reaction,
+    session: {
+      mode,
+      consecutiveErrors: session.consecutiveErrors,
+      currentTask: session.currentTask,
+    },
+    timestamp: new Date().toISOString(),
+  });
   return pet;
 }
 
 /** Handle error */
-function onError(pet, tool) {
+function onError(pet, tool, options = {}) {
+  const sessionBefore = readSession();
+  const session = updateSessionForTool(sessionBefore, tool, options.file || '', options.command || '', true);
+  writeSession(session);
+
   pet.mood = 'worried';
   addXp(pet, 3, 'error_recovery');
   pet.lastActive = new Date().toISOString();
+  const mode = normalizeMode(session.mode || readConfig().liveMode);
+  const reaction = createReaction(
+    pet,
+    session.consecutiveErrors >= 3
+      ? `${pet.speciesEmoji} ${pet.name} 看到连续错误，建议先缩小问题面。`
+      : `${pet.speciesEmoji} ${pet.name} 担心地看着这次失败。`,
+    'worried',
+    session.consecutiveErrors >= 3 ? 'critical' : 'important',
+    mode,
+    10000,
+  );
+  pet.lastReaction = reaction;
   writePet(pet);
-  logEvent({ type: 'error', tool, exitCode: 1, timestamp: new Date().toISOString() });
+  rememberEvent({
+    type: 'error',
+    tool,
+    exitCode: 1,
+    importance: reaction.priority,
+    surface: reaction.surface,
+    reaction,
+    session: {
+      mode,
+      consecutiveErrors: session.consecutiveErrors,
+      currentTask: session.currentTask,
+    },
+    timestamp: new Date().toISOString(),
+  });
   return pet;
 }
 
@@ -302,8 +560,11 @@ function onSessionStop(pet) {
   pet.mood = 'sleepy';
   pet.energy = Math.max(0, pet.energy - 10);
   pet.lastActive = new Date().toISOString();
+  const mode = getLiveMode();
+  const reaction = createReaction(pet, `${pet.speciesEmoji} ${pet.name} 打了个哈欠，准备休息。`, 'sleepy', 'important', mode);
+  pet.lastReaction = reaction;
   writePet(pet);
-  logEvent({ type: 'session_stop', message: `${pet.name} went to sleep`, timestamp: new Date().toISOString() });
+  rememberEvent({ type: 'session_stop', message: `${pet.name} went to sleep`, importance: reaction.priority, surface: reaction.surface, reaction, timestamp: new Date().toISOString() });
   return pet;
 }
 
@@ -373,6 +634,7 @@ function formatStatus(pet) {
 }
 
 module.exports = {
+  LEVEL_XP,
   generatePet,
   getOrCreatePet,
   addXp,
@@ -387,5 +649,13 @@ module.exports = {
   onSessionStop,
   applyDecay,
   xpProgress,
+  xpForLevel,
+  xpToNextLevel,
+  getLiveMode,
+  setLiveMode,
+  normalizeMode,
+  shouldSurfaceToConversation,
+  createReaction,
+  reactionForTool,
   formatStatus,
 };

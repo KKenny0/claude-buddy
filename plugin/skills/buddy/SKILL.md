@@ -13,7 +13,7 @@ Use the Bash tool with this exact command pattern:
 node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" <command>
 ```
 
-Where `<command>` is one of: `hatch`, `status`, `feed`, `play`, `pet`, `stats`, `rename <name>`.
+Where `<command>` is one of: `hatch`, `status`, `feed`, `play`, `pet`, `stats`, `rename <name>`, `live`, `statusline install`, `statusline remove`, `sidebar start`, `sidebar stop`, `quiet`, `focus`, `lively`, `events`.
 
 **Examples:**
 ```bash
@@ -42,6 +42,9 @@ The pet's state is stored in `~/.claude-buddy/pet.json`. Key fields:
 - `hunger` — 0 (full) to 100 (starving)
 - `energy` — 0 (exhausted) to 100 (full)
 - `streak` — Consecutive coding days
+- `lastReaction` — Latest unified reaction shared by hooks and live view
+
+Session dynamics live in `~/.claude-buddy/session.json`, including presence mode, recent events, consecutive errors, and recovery state.
 
 ## When to Reference the Pet
 
@@ -90,14 +93,19 @@ All pet events are logged to `~/.claude-buddy/events.log` as JSON lines.
 
 ## Sidebar (Real-time Pet View)
 
-When the user asks for real-time pet dynamics or runs `/claude-buddy:buddy sidebar start`, use the Bash tool to run the sidebar directly:
+When the user asks for always-visible Buddy dynamics or runs `/claude-buddy:buddy live`, use the Bash tool to install the native Claude Code statusline:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-sidebar.js" --width 28 --height 24
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" live
 ```
 
-This will run as a background task in Claude Code. The user can click the down arrow to view the real-time ASCII art output.
+This configures Claude Code's native statusline. It avoids opening a background Bash task panel.
 
-> **Note:** Do NOT use `tmux split-window` — running it directly as a Bash command lets the user see it in Claude Code's task output panel.
+For a detached/tmux sidebar, use:
 
-To stop, the user can kill the task from Claude Code's UI.
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" sidebar start
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" sidebar stop
+```
+
+To stop a foreground live task, the user can kill the task from Claude Code's UI.
