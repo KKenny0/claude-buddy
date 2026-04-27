@@ -36,6 +36,14 @@ function shellQuote(value) {
   return `'${String(value).replace(/'/g, `'\\''`)}'`;
 }
 
+function commandQuote(value) {
+  const text = String(value);
+  if (process.platform === 'win32') {
+    return `"${text.replace(/"/g, '\\"')}"`;
+  }
+  return shellQuote(text);
+}
+
 function createHookHandler(scriptPath, matcher) {
   return {
     matcher,
@@ -178,7 +186,7 @@ function writeClaudeSettings(settings) {
 }
 
 function buddyStatuslineCommand() {
-  return `${process.execPath} ${shellQuote(statuslineScriptPath())}`;
+  return `${commandQuote(process.execPath)} ${commandQuote(statuslineScriptPath())}`;
 }
 
 function isBuddyStatusline(statusLine) {
@@ -284,7 +292,7 @@ function stopSidebar(options = {}) {
 
 function runLiveForeground() {
   installStatusline({ forceBuddy: true });
-  console.log('Claude Buddy statusline enabled. Run /reload or restart Claude Code if it does not appear immediately.');
+  console.log('Claude Buddy statusline enabled. Run /reload-plugins or restart Claude Code if it does not appear immediately.');
 }
 
 function installStatusline(options = {}) {
