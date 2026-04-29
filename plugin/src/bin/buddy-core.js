@@ -236,7 +236,7 @@ function startSidebar() {
   }
 
   if (process.env.TMUX) {
-    const commandLine = `${process.execPath} ${shellQuote(sidebarScriptPath())} --width 32 --height 24`;
+    const commandLine = `${shellQuote(process.execPath)} ${shellQuote(sidebarScriptPath())} --width 32 --height 24`;
     const tmux = spawnSync('tmux', ['split-window', '-h', '-l', '32', commandLine], { stdio: 'ignore' });
     if (tmux.status === 0) {
       console.log(stopped > 0
