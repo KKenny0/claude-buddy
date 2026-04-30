@@ -7,13 +7,15 @@ This skill teaches you how to interact with and respond to the pet.
 
 ## Running Buddy Commands
 
+If the user invoked `/claude-buddy:buddy` or `/buddy`, do not answer from this skill's pet guidance. The slash command must run `buddy-core.js` and preserve the CLI output exactly.
+
 Use the Bash tool with this exact command pattern:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" <command>
 ```
 
-Where `<command>` is one of: `hatch`, `status`, `feed`, `play`, `pet`, `stats`, `rename <name>`, `live`, `statusline install`, `statusline remove`, `sidebar start`, `sidebar stop`, `quiet`, `focus`, `lively`, `events`.
+Where `<command>` is one of: `hatch`, `status`, `feed`, `play`, `pet`, `stats`, `rename <name>`, `live`, `statusline install`, `statusline remove`, `panel`, `sidebar start`, `sidebar stop`, `quiet`, `focus`, `lively`, `events`.
 
 **Examples:**
 ```bash
@@ -70,6 +72,7 @@ node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" play
 node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" pet
 node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" stats
 node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" status
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" panel
 ```
 
 ## Reading Pet State
@@ -100,6 +103,12 @@ node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" live
 ```
 
 This configures Claude Code's native statusline. It avoids opening a background Bash task panel.
+
+For a temporary tmux panel, use:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" panel
+```
 
 For a detached/tmux sidebar, use:
 

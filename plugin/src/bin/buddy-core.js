@@ -15,7 +15,6 @@ const {
   playWithPet,
   petPet,
   renamePet,
-  formatStatus,
   addXp,
   onSessionStart,
   onToolUse,
@@ -25,6 +24,7 @@ const {
   getLiveMode,
 } = require('../core');
 const { readPet, ensureSetup, getBuddyHome, readSession, readConfig, writeConfig } = require('../storage');
+const { renderDetailCard } = require('../render');
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -147,6 +147,16 @@ function currentReactionPayload(pet) {
     reaction: pet?.lastReaction || null,
     mode: getLiveMode(),
   };
+}
+
+function printDetailCard(pet, options = {}) {
+  console.log(renderDetailCard({
+    pet,
+    session: readSession(),
+    config: readConfig(),
+    width: options.width || 72,
+    color: options.color,
+  }));
 }
 
 function sidebarPidPath() {
@@ -290,6 +300,25 @@ function stopSidebar(options = {}) {
   return stopped;
 }
 
+function openPanel() {
+  const pet = getOrCreatePet(process.env.USER ?? 'anonymous');
+  if (process.env.TMUX) {
+    const commandLine = [
+      shellQuote(process.execPath),
+      shellQuote(sidebarScriptPath()),
+      '--panel',
+      '--width',
+      '42',
+      '--height',
+      '24',
+    ].join(' ');
+    const tmux = spawnSync('tmux', ['display-popup', '-E', '-w', '42', '-h', '24', commandLine], { stdio: 'inherit' });
+    if (tmux.status === 0) return;
+  }
+
+  printDetailCard(pet);
+}
+
 function runLiveForeground() {
   installStatusline({ forceBuddy: true });
   console.log('Claude Buddy statusline enabled. Run /reload-plugins or restart Claude Code if it does not appear immediately.');
@@ -349,8 +378,7 @@ switch (command) {
     if (jsonOutput) emitJson(currentReactionPayload(pet));
     else {
       console.log(`🎉 ${pet.name} the ${pet.rarity} ${pet.speciesName} hatched!`);
-      console.log(formatStatus(pet));
-      console.log('');
+      printDetailCard(pet);
     }
     break;
   }
@@ -358,7 +386,7 @@ switch (command) {
   case 'status': {
     const pet = getOrCreatePet(args[1]);
     if (jsonOutput) emitJson(currentReactionPayload(pet));
-    else console.log(formatStatus(pet));
+    else printDetailCard(pet);
     break;
   }
 
@@ -411,7 +439,7 @@ switch (command) {
       pet.statsXpToday += 1;
     }
     if (jsonOutput) emitJson(currentReactionPayload(pet));
-    else console.log(formatStatus(pet));
+    else printDetailCard(pet);
     break;
   }
 
@@ -482,6 +510,11 @@ switch (command) {
     break;
   }
 
+  case 'panel': {
+    openPanel();
+    break;
+  }
+
   case 'statusline': {
     const subcommand = args[1] || 'install';
     if (subcommand === 'install' || subcommand === 'on') {
@@ -514,7 +547,7 @@ switch (command) {
   default:
     if (!command) {
       const pet = getOrCreatePet(process.env.USER ?? 'anonymous');
-      console.log(formatStatus(pet));
+      printDetailCard(pet);
     } else {
       console.log(`Claude Buddy v1.0.0`);
       console.log('');
@@ -530,7 +563,8 @@ switch (command) {
       console.log('  live on|off           Enable/disable Buddy statusline');
       console.log('  statusline install    Install native Claude Code statusline');
       console.log('  statusline remove     Remove Buddy statusline');
-      console.log('  sidebar start|stop    Start/stop background sidebar');
+      console.log('  panel                 Open temporary tmux panel (falls back to status card)');
+      console.log('  sidebar start|stop    Start/stop optional live sidebar');
       console.log('  quiet|focus|lively    Set buddy presence mode');
       console.log('  events                Show recent buddy events');
       console.log('  session-start         Handle session start');

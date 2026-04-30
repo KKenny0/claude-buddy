@@ -10,7 +10,8 @@ A virtual pet companion for Claude Code coding sessions.
 - 📈 **XP & Leveling** — 20 levels with multiple XP sources
 - 🎭 **Dynamic Reactions** — Pet reacts to your coding activities
 - 📟 **Native Statusline** — Always-visible Buddy status in Claude Code
-- 🖥️ **tmux Sidebar** — Real-time ASCII art with animations
+- 🧾 **Terminal Detail Card** — `/buddy` shows a compact pet status card on demand
+- 🖥️ **Optional tmux Panel/Sidebar** — Temporary popup or live watcher for terminal users
 - 💾 **Persistent State** — Global `~/.claude-buddy/` storage
 
 ## Installation
@@ -64,7 +65,9 @@ npm install -g .
 
 ```
 /buddy hatch          # 孵化你的第一只宠物
-/buddy status         # 查看状态
+/buddy status         # 查看详情卡
+/buddy live           # 启用 Claude Code statusline
+/buddy panel          # 临时 tmux popup（非 tmux 会显示详情卡）
 /buddy feed           # 喂食
 /buddy pet            # 摸摸 (+2 XP)
 ```
@@ -72,8 +75,8 @@ npm install -g .
 在终端中（可选）：
 
 ```bash
-# 启动 tmux 侧栏（需要先 build）
-buddy-sidebar --width 28 --height 24
+# 启动可选实时侧栏
+buddy-core sidebar start
 ```
 
 ## Commands
@@ -89,8 +92,9 @@ buddy-sidebar --width 28 --height 24
 | `buddy-core rename <name>` | Rename pet |
 | `buddy-core live` | Install native Claude Code Buddy statusline |
 | `buddy-core statusline remove` | Remove Buddy statusline |
-| `buddy-core sidebar start` | Start detached/tmux sidebar |
-| `buddy-core sidebar stop` | Stop detached sidebar |
+| `buddy-core panel` | Open temporary tmux popup, or print status card outside tmux |
+| `buddy-core sidebar start` | Start optional detached/tmux sidebar |
+| `buddy-core sidebar stop` | Stop optional sidebar |
 | `buddy-core quiet/focus/lively` | Set Buddy presence mode |
 | `buddy-core events` | Show recent Buddy events |
 | `buddy-sidebar` | Start renderer directly |
@@ -124,26 +128,33 @@ buddy-sidebar --width 28 --height 24
 | Streak bonus | +5 × streak |
 | Error recovery | +3 |
 
-## Statusline and Sidebar
+## Presence Surfaces
 
 ```bash
 # Native Claude Code statusline
 buddy-core live
 buddy-core statusline remove
 
-# Detached/tmux sidebar
+# On-demand detail card
+buddy-core status
+
+# Temporary tmux popup panel
+buddy-core panel
+
+# Optional detached/tmux sidebar
 buddy-core sidebar start
 buddy-core sidebar stop
 
-# Direct renderer with custom size
-buddy-sidebar --width 32 --height 30
+# Direct renderer smoke test
+buddy-sidebar --once --width 42 --height 24
 ```
 
-The sidebar features:
+The default experience is statusline-first. `/buddy status` prints the full pet card when you want detail. `buddy-core panel` opens a temporary tmux popup when available, and `sidebar start` remains available as a power-user live watcher.
+
+The panel/sidebar features:
 - Real-time ASCII art pet rendering
-- Blink and tail-wag animations
+- Shared terminal renderer with the `/buddy` card
 - Event-driven reactions
-- Mood/hunger/energy decay
 - Rarity-colored UI
 - Recent event timeline
 - Presence modes: quiet, focus, lively

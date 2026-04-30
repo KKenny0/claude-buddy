@@ -2,7 +2,7 @@
 
 > A virtual pet companion for Claude Code — Tamagotchi for developers.
 
-Your coding buddy watches you code, reacts to your actions, and grows with you. Deterministically generated from your username, with 12 species, 5 rarity tiers, shiny variants, and real-time tmux sidebar animations.
+Your coding buddy watches you code, reacts to your actions, and grows with you. Deterministically generated from your username, with 12 species, 5 rarity tiers, shiny variants, a native statusline, and on-demand terminal views.
 
 ![Claude Buddy sidebar demo](docs/images/claude-buddy-sidebar-demo.png)
 
@@ -14,7 +14,8 @@ Your coding buddy watches you code, reacts to your actions, and grows with you. 
 - 📈 **XP & Leveling** — 20 levels with 7 XP sources (coding, commits, streaks...)
 - 🎭 **Dynamic Reactions** — Pet reacts to your coding activities via hooks
 - 📟 **Native Statusline** — Always-visible Buddy mood, mode, streak, and test status
-- 🖥️ **tmux Sidebar** — Real-time ASCII art with blink, tail-wag, and shiny animations
+- 🧾 **Terminal Detail Card** — `/buddy` shows pet status, art, stats, and recent activity
+- 🖥️ **Optional tmux Panel/Sidebar** — Temporary popup or live watcher for terminal users
 - 💾 **Persistent State** — Global `~/.claude-buddy/` storage, survives sessions
 
 ## Installation
@@ -54,7 +55,7 @@ After installation, commands are prefixed with the plugin name:
 | Command | Description |
 |---------|-------------|
 | `/claude-buddy:buddy hatch` | Hatch your first pet (based on your username) |
-| `/claude-buddy:buddy` | Show pet status (level, XP, mood, stats) |
+| `/claude-buddy:buddy` | Show pet detail card (level, XP, mood, stats, recent activity) |
 | `/claude-buddy:buddy feed` | Feed your pet (restores hunger) |
 | `/claude-buddy:buddy play` | Play with your pet (boosts energy + mood) |
 | `/claude-buddy:buddy pet` | Pet your buddy (+2 XP, daily cap 20) |
@@ -62,7 +63,8 @@ After installation, commands are prefixed with the plugin name:
 | `/claude-buddy:buddy rename <name>` | Give your pet a name |
 | `/claude-buddy:buddy live` | Install the native Claude Code Buddy statusline |
 | `/claude-buddy:buddy statusline remove` | Remove Buddy from the statusline |
-| `/claude-buddy:buddy sidebar start` | Start detached/tmux sidebar |
+| `/claude-buddy:buddy panel` | Open temporary tmux popup, or print detail card outside tmux |
+| `/claude-buddy:buddy sidebar start` | Start optional detached/tmux sidebar |
 | `/claude-buddy:buddy quiet` | Minimal Buddy conversation presence |
 | `/claude-buddy:buddy focus` | Balanced presence (default) |
 | `/claude-buddy:buddy lively` | More active Buddy reactions |
@@ -76,9 +78,9 @@ No setup needed. Once installed, the plugin hooks fire automatically:
 - **After each tool use** — Pet reacts (curious, focused, tense, relaxed...)
 - **Session end** — Pet says goodbye
 
-### Native Statusline — Always-visible Buddy 🖥️
+### Presence Surfaces
 
-The statusline keeps Buddy visible without opening a background task panel.
+Claude Buddy is statusline-first. The statusline keeps Buddy visible without opening a background task panel, `/buddy` prints the full detail card on demand, and tmux users can open a temporary popup panel.
 
 **Start from Claude Code:**
 ```
@@ -91,13 +93,25 @@ Claude Buddy will configure Claude Code's native `statusLine` with a compact lin
 buddy: lively | 🐉 火火 focused | Lv.1 50% | streak 0d | tests green
 ```
 
-**Detached or tmux sidebar:**
+**On-demand detail card:**
+```
+/claude-buddy:buddy status
+```
+
+**Temporary tmux panel:**
+```
+/claude-buddy:buddy panel
+```
+
+Outside tmux, `panel` falls back to the same detail card.
+
+**Optional detached or tmux sidebar:**
 ```
 /claude-buddy:buddy sidebar start
 /claude-buddy:buddy sidebar stop
 ```
 
-If Claude Buddy detects tmux, `sidebar start` opens a right pane. Otherwise it starts a detached process and tells you how to open a foreground view.
+If Claude Buddy detects tmux, `sidebar start` opens a right pane. Otherwise it starts a detached process. This is a power-user live watcher, not required for the default experience.
 
 **Or start manually in tmux:**
 ```bash
@@ -121,12 +135,11 @@ Typical marketplace install path:
 ~/.claude/plugins/marketplaces/claude-buddy/plugin
 ```
 
-The sidebar features:
+The panel/sidebar features:
 - Species-specific ASCII art (4 mood states per species)
 - Rarity-colored UI
 - Blink and tail-wag animations
 - Shiny sparkle effects ✨
-- Mood/hunger/energy decay over time
 - Real-time event reactions (coding, errors, idle...)
 - Recent event timeline and presence mode status
 
@@ -199,17 +212,19 @@ All data stored in `~/.claude-buddy/`:
 ┌─────────────────────────────────────┐
 │           Claude Code               │
 │                                     │
-│  Hooks ──▶ events.log ──▶ Sidebar  │
-│  (auto)    (append)       (watch)   │
+│  Hooks ──▶ pet/session state files  │
+│  (auto)       + events.log          │
 │                                     │
-│  /buddy ──▶ buddy-core ──▶ pet.json │
-│  (slash)   (cli tool)    (state)   │
+│  /buddy ──▶ buddy-core ──▶ card     │
+│  statusLine ────────────▶ one line  │
+│  panel/sidebar ─────────▶ live view │
 └─────────────────────────────────────┘
 ```
 
-- **Hooks** detect Claude Code events and append to `events.log`
-- **buddy-core** manages pet state (hatch, feed, level up...)
-- **buddy-sidebar** watches events.log and renders ASCII art in tmux
+- **Hooks** detect Claude Code events, update state, and append to `events.log`
+- **buddy-core** manages pet state and prints the `/buddy` detail card
+- **buddy-statusline** prints the compact always-visible Claude Code line
+- **buddy-sidebar** powers the optional tmux panel/sidebar live views
 
 ## Troubleshooting
 
@@ -225,8 +240,8 @@ rm -rf ~/.claude/plugins/cache/claude-buddy
 **`/claude-buddy:buddy` says "Unknown skill"?**
 Plugin not installed. Run the installation commands above.
 
-**Sidebar not showing?**
-Run `/claude-buddy:buddy sidebar start` in Claude Code — it will open a tmux pane automatically.
+**Need a live view?**
+Run `/claude-buddy:buddy panel` for a temporary tmux popup, or `/claude-buddy:buddy sidebar start` for the optional long-running sidebar.
 
 ## License
 
