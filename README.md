@@ -4,7 +4,28 @@
 
 Your buddy tracks your coding patterns via Claude Code hooks and surfaces insights on the statusline. It stays out of your conversation — no context pollution, no injected reactions. All feedback lives on the statusline, sidebar, or on-demand detail card.
 
-![Claude Buddy sidebar demo](docs/images/claude-buddy-sidebar-demo.png)
+**Statusline (always visible in Claude Code):**
+```
+buddy: focus | 🐉 火火 focused | Lv.7 30% | streak 1d | tests idle | ↻ core.js
+```
+
+**On-demand detail card (`/buddy`):**
+```
+╭──────────────────────────────────────────────────────────────────╮
+│ Claude Buddy                                                     │
+├──────────────────────────────────────────────────────────────────┤
+│ 🐉 火火  Lv.7 rare  focus                                        │
+│ XP ████░░░░░░░░░░░░ 25%   🤔 focused   streak 1d                 │
+│ Energy ████████████ 80/100   Hunger ████░░░░░░ 40/100            │
+│                                                                   │
+│        /^\       "🐉 火火 跟着你的改动移动视线。"                   │
+│     <  •_•  >→                                                    │
+│    (   ~   )                                                      │
+│     `-zzzz-´                                                      │
+│                                                                   │
+│ Debug 33   Patience 28   Chaos 46   Wisdom 60   Snark 38        │
+╰──────────────────────────────────────────────────────────────────╯
+```
 
 ## Features
 
