@@ -100,10 +100,12 @@ function readPet() {
   return { ...PET_DEFAULTS, ...pet };
 }
 
-/** Write pet state to disk */
+/** Write pet state to disk (atomic — write to temp then rename) */
 function writePet(pet) {
   const petPath = path.join(getBuddyHome(), 'pet.json');
-  fs.writeFileSync(petPath, JSON.stringify(pet, null, 2));
+  const tmpPath = petPath + '.tmp';
+  fs.writeFileSync(tmpPath, JSON.stringify(pet, null, 2));
+  fs.renameSync(tmpPath, petPath);
 }
 
 /** Append an event to the event log */
