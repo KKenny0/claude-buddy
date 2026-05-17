@@ -711,6 +711,9 @@ function formatStatus(pet) {
 
 module.exports = {
   LEVEL_XP,
+  determineRarity,
+  statFloor,
+  generateStats,
   generatePet,
   getOrCreatePet,
   addXp,

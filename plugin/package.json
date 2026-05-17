@@ -9,6 +9,17 @@
     "buddy-sidebar": "./src/bin/buddy-sidebar.js",
     "buddy-statusline": "./src/bin/buddy-statusline.js"
   },
-  "keywords": ["claude", "pet", "companion", "tmux"],
-  "license": "MIT"
+  "keywords": [
+    "claude",
+    "pet",
+    "companion",
+    "tmux"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
+  }
 }
