@@ -22,6 +22,9 @@ const {
   onSessionStop,
   setLiveMode,
   getLiveMode,
+  effectiveLevel,
+  evolvePet,
+  prestigePet,
 } = require('../core');
 const { readPet, ensureSetup, getBuddyHome, readSession, readConfig, writeConfig } = require('../storage');
 const { renderDetailCard } = require('../render');
@@ -33,6 +36,8 @@ const UNLOCKS = {
   sessionDuration: 7,
   summary: 10,
   errorPatterns: 13,
+  evolution: 15,
+  prestige: 20,
 };
 
 const args = process.argv.slice(2);
@@ -579,10 +584,51 @@ switch (command) {
 
   case 'unlocks': {
     const pet = getOrCreatePet(process.env.USER ?? 'anonymous');
-    console.log(`Level Unlock Progress (Lv.${pet.level}/20)`);
+    const eLv = effectiveLevel(pet);
+    console.log(`Level Unlock Progress (Lv.${eLv}/20)`);
     for (const [feature, level] of Object.entries(UNLOCKS)) {
       const icon = pet.level >= level ? '\u2705' : '\uD83D\uDD12';
       console.log(`  ${icon} Lv.${level}: ${feature}`);
+    }
+    break;
+  }
+
+  case 'evolve': {
+    const pet = getOrCreatePet(process.env.USER ?? 'anonymous');
+    if (pet.evolvedForm) {
+      console.log(`${pet.speciesEmoji} ${pet.name} has already evolved into ${pet.evolvedForm} (${pet.evolutionPath}).`);
+      break;
+    }
+    if (pet.level < 15) {
+      console.log(`Evolution unlocks at Lv.15. Current: Lv.${pet.level}. Keep coding!`);
+      break;
+    }
+    evolvePet(pet);
+    const updated = readPet();
+    if (jsonOutput) emitJson(currentReactionPayload(updated));
+    else {
+      console.log(`✨ ${updated.name} evolved into ${updated.evolvedForm}!`);
+      printDetailCard(updated);
+    }
+    break;
+  }
+
+  case 'prestige': {
+    const pet = readPet();
+    if (!pet) {
+      console.error('No pet found. Hatch one first with: buddy-core hatch');
+      process.exit(1);
+    }
+    if (pet.level < 20) {
+      console.log(`Prestige unlocks at Lv.20. Current: Lv.${effectiveLevel(pet)}. Keep coding!`);
+      break;
+    }
+    prestigePet(pet);
+    const updated = readPet();
+    if (jsonOutput) emitJson(currentReactionPayload(updated));
+    else {
+      console.log(`🌟 ${updated.name} prestiged! Now cycle ${updated.prestige} (Lv.${effectiveLevel(updated)}).`);
+      printDetailCard(updated);
     }
     break;
   }
@@ -612,6 +658,8 @@ switch (command) {
       console.log('  events                Show recent buddy events');
       console.log('  summary               Show session summary (Lv.10+)');
       console.log('  unlocks               Show level unlock progress');
+      console.log('  evolve                Trigger evolution (Lv.15+, auto on level up)');
+      console.log('  prestige              Reset with permanent bonuses (Lv.20+)');
       console.log('  session-start         Handle session start');
       console.log('  tool-use <t> [f]      Handle tool use event');
       console.log('  session-stop          Handle session stop');

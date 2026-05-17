@@ -86,9 +86,18 @@ function defaultSession() {
 }
 
 /** Read pet state from disk */
+/** Default fields for missing pet properties (backwards-compatible) */
+const PET_DEFAULTS = {
+  prestige: 0,
+  evolvedForm: null,
+  evolutionPath: null,
+};
+
 function readPet() {
   const petPath = path.join(getBuddyHome(), 'pet.json');
-  return readJsonFile(petPath, null);
+  const pet = readJsonFile(petPath, null);
+  if (!pet) return null;
+  return { ...PET_DEFAULTS, ...pet };
 }
 
 /** Write pet state to disk */

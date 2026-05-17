@@ -4,7 +4,7 @@
  */
 
 const crypto = require('crypto');
-const { SPECIES, NAME_SUGGESTIONS, HATS } = require('./data/species');
+const { SPECIES, NAME_SUGGESTIONS, HATS, getEvolutionPath, getEvolvedName } = require('./data/species');
 const {
   ensureSetup,
   readPet,
@@ -314,6 +314,11 @@ function addXp(pet, amount, reason) {
     pet.level += 1;
     appendHistory({ level: pet.level, timestamp: new Date().toISOString(), event: reason });
     logEvent({ type: 'level_up', message: `${pet.name} leveled up to ${pet.level}!`, timestamp: new Date().toISOString() });
+
+    // Auto-evolve at Lv.15
+    if (pet.level === 15 && !pet.evolvedForm) {
+      evolvePet(pet);
+    }
   }
 
   pet.xpToNext = pet.level >= 20 ? 0 : xpToNextLevel(pet.level);
@@ -574,6 +579,98 @@ function xpProgress(pet) {
   return Math.round(((pet.xp - currentLevelBase) / (nextLevelBase - currentLevelBase)) * 100);
 }
 
+/** Get the effective level for display (includes prestige suffix) */
+function effectiveLevel(pet) {
+  const prestige = pet.prestige || 0;
+  if (prestige > 0) return `${pet.level}+${prestige}`;
+  return String(pet.level);
+}
+
+/** Evolve a pet at Lv.15 based on its highest stat */
+function evolvePet(pet) {
+  if (pet.level < 15) return pet;
+  if (pet.evolvedForm) return pet; // already evolved
+
+  const path = getEvolutionPath(pet);
+  const evolvedName = getEvolvedName(pet.species, path.id);
+
+  pet.evolvedForm = evolvedName;
+  pet.evolutionPath = path.id;
+  pet.speciesName = evolvedName;
+
+  // Stat boost on evolution
+  for (const key of Object.keys(pet.stats)) {
+    pet.stats[key] = Math.min(100, pet.stats[key] + 10);
+  }
+
+  pet.lastActive = new Date().toISOString();
+  const mode = getLiveMode();
+  const reaction = createReaction(
+    pet,
+    `${pet.speciesEmoji} ${pet.name} 进化成了 ${evolvedName}！形态：${path.name}（${path.label}）。`,
+    'excited',
+    'level_up',
+    mode,
+    10000,
+  );
+  pet.lastReaction = reaction;
+  writePet(pet);
+  appendHistory({ level: pet.level, timestamp: new Date().toISOString(), event: `evolved:${path.id}` });
+  logEvent({ type: 'evolution', message: `${pet.name} evolved into ${evolvedName} (${path.name})!`, timestamp: new Date().toISOString() });
+  rememberEvent({
+    type: 'evolution',
+    message: `Evolved into ${evolvedName}!`,
+    importance: 'critical',
+    reaction,
+    timestamp: new Date().toISOString(),
+  });
+  return pet;
+}
+
+/** Prestige — reset to Lv.1 with permanent bonuses */
+function prestigePet(pet) {
+  if (pet.level < 20) return pet;
+
+  const prestige = (pet.prestige || 0) + 1;
+
+  // Permanent stat bonus per prestige
+  for (const key of Object.keys(pet.stats)) {
+    pet.stats[key] = Math.min(100, pet.stats[key] + 5);
+  }
+
+  pet.prestige = prestige;
+  pet.level = 1;
+  pet.xp = 0;
+  pet.xpToNext = xpToNextLevel(1);
+  pet.toolUseCount = 0;
+  pet.petXpToday = 0;
+  pet.statsXpToday = 0;
+  pet.sessionStartXpToday = false;
+  pet.lastActive = new Date().toISOString();
+
+  const mode = getLiveMode();
+  const reaction = createReaction(
+    pet,
+    `${pet.speciesEmoji} ${pet.name} 转生了！进入第 ${prestige} 轮回。`,
+    'excited',
+    'level_up',
+    mode,
+    10000,
+  );
+  pet.lastReaction = reaction;
+  writePet(pet);
+  appendHistory({ level: 1, timestamp: new Date().toISOString(), event: `prestige:${prestige}` });
+  logEvent({ type: 'prestige', message: `${pet.name} prestiged to cycle ${prestige}!`, timestamp: new Date().toISOString() });
+  rememberEvent({
+    type: 'prestige',
+    message: `Prestige cycle ${prestige} begins!`,
+    importance: 'critical',
+    reaction,
+    timestamp: new Date().toISOString(),
+  });
+  return pet;
+}
+
 /** Format pet status as text */
 function formatStatus(pet) {
   const rarityColors = {
@@ -636,4 +733,7 @@ module.exports = {
   createReaction,
   reactionForTool,
   formatStatus,
+  effectiveLevel,
+  evolvePet,
+  prestigePet,
 };

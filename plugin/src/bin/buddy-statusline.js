@@ -5,8 +5,9 @@
  * All output is purely visual — nothing is injected into conversation context.
  */
 
-const { getOrCreatePet, xpProgress } = require('../core');
+const { getOrCreatePet, xpProgress, effectiveLevel } = require('../core');
 const { ensureSetup, readSession, readConfig } = require('../storage');
+const { EVOLUTION_PATHS } = require('../data/species');
 
 const ESC = '\x1b[';
 const c = {
@@ -28,6 +29,8 @@ const UNLOCKS = {
   sessionDuration: 7,
   summary: 10,
   errorPatterns: 13,
+  evolution: 15,
+  prestige: 20,
 };
 
 function unlocked(level, feature) {
@@ -87,12 +90,31 @@ function colorForMood(mood) {
 function buildSegments(pet, session, mode) {
   const segs = [];
   const progress = xpProgress(pet);
+  const eLv = effectiveLevel(pet);
+  const prestige = pet.prestige || 0;
 
   // Core: always shown
   segs.push(`${c.cyan}buddy:${c.reset} ${c.yellow}${mode}${c.reset}`);
-  segs.push(`${pet.speciesEmoji} ${pet.name} ${colorForMood(pet.mood)}${pet.mood}${c.reset}`);
-  segs.push(`${c.dim}Lv.${pet.level}${c.reset} ${progress}%`);
+
+  // Evolved name or base name
+  const displayName = pet.evolvedForm || pet.name;
+  segs.push(`${pet.speciesEmoji} ${displayName} ${colorForMood(pet.mood)}${pet.mood}${c.reset}`);
+  segs.push(`${c.dim}Lv.${eLv}${c.reset} ${progress}%`);
   segs.push(`${c.dim}streak${c.reset} ${pet.streak || 0}d`);
+
+  // Prestige indicator
+  if (prestige > 0) {
+    const stars = '\u2726'.repeat(Math.min(prestige, 5));
+    segs.push(`${c.brightYellow}${stars}${c.reset}`);
+  }
+
+  // Evolution path indicator (Lv.15+)
+  if (unlocked(pet.level, 'evolution') && pet.evolutionPath) {
+    const path = Object.values(EVOLUTION_PATHS).find(p => p.id === pet.evolutionPath);
+    if (path) {
+      segs.push(`${c.magenta}${path.label}${c.reset}`);
+    }
+  }
 
   // Level 3+: test status
   if (unlocked(pet.level, 'testStatus')) {

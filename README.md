@@ -93,6 +93,8 @@ After installation, commands are prefixed with the plugin name:
 | `/claude-buddy:buddy events` | Show recent Buddy activity |
 | `/claude-buddy:buddy summary` | Show session summary (unlocks at Lv.10) |
 | `/claude-buddy:buddy unlocks` | Show level unlock progress |
+| `/claude-buddy:buddy evolve` | Trigger evolution (Lv.15+, auto on level up) |
+| `/claude-buddy:buddy prestige` | Reset with permanent bonuses (Lv.20+) |
 
 ### Hooks (automatic, silent)
 
@@ -116,6 +118,37 @@ Your buddy grows with you. Higher levels unlock more statusline features:
 | 7 | Session duration / fatigue warning |
 | 10 | `/buddy summary` — session stats |
 | 13 | Error pattern recognition |
+| 15 | **Evolution** — species transforms based on highest stat |
+| 20 | **Prestige** — reset to Lv.1 with permanent bonuses |
+
+### Evolution System (Lv.15)
+
+When your buddy reaches Lv.15, it evolves based on its highest stat. Each stat maps to an evolution path:
+
+| Highest Stat | Path | Label | Art Effect |
+|-------------|------|-------|------------|
+| Debug | Valor | 勇 | ⚔ Sword indicators |
+| Patience | Zen | 禅 | ≋ Serene aura |
+| Chaos | Storm | 雷 | ⚡ Electric sparks |
+| Wisdom | Sage | 智 | ✧ Wisdom glow |
+| Snark | Rogue | 影 | ◇ Shadow wisps |
+
+Evolution changes your species name (e.g., Dragon → 智龙), applies visual art modifiers, and grants +10 to all stats. Evolution is automatic on reaching Lv.15 — triggered via `addXp()`.
+
+### Prestige System (Lv.20)
+
+At Lv.20 (max level), you can prestige:
+
+```
+/claude-buddy:buddy prestige
+```
+
+Prestige resets your level to 1 while keeping:
+- Your evolved form (if you evolved at Lv.15)
+- Your species and rarity
+- Your stats (plus +5 permanent bonus per prestige cycle)
+
+Your level display changes to `Lv.X+N` where N is your prestige count. The statusline shows ✦ for each prestige cycle. There is no cap on prestige cycles — you can keep going.
 
 ### Rhythm Coach Signals
 

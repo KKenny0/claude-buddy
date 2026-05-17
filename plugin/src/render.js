@@ -4,8 +4,8 @@
  * receive a string to print.
  */
 
-const { SPECIES } = require('./data/species');
-const { xpProgress } = require('./core');
+const { SPECIES, applyEvolvedArt } = require('./data/species');
+const { xpProgress, effectiveLevel } = require('./core');
 
 const ESC = '\x1b[';
 const CLEAR = `${ESC}2J${ESC}H`;
@@ -235,22 +235,36 @@ function getShowcaseArt(pet, options = {}) {
     excited: '★_★',
   }[pet?.mood] || '•_•';
 
+  let art;
   switch (pet?.species) {
     case 'cat':
-      return ['   /\\___/\\   ', `  (  ${moodFace}  )  `, '  /   >   \\  ', ' /___x_____\\ '];
+      art = ['   /\\___/\\   ', `  (  ${moodFace}  )  `, '  /   >   \\  ', ' /___x_____\\ '];
+      break;
     case 'dragon':
-      return ['     /^\\     ', ` <  ${moodFace}  >→`, ' (   ~   )  ', '  `-zzzz-´  '];
+      art = ['     /^\\     ', ` <  ${moodFace}  >→`, ' (   ~   )  ', '  `-zzzz-´  '];
+      break;
     case 'ghost':
-      return ['   .-"""-.   ', `  / ${moodFace} \\  `, '  \\  ~  /   ', '   `---´    '];
+      art = ['   .-"""-.   ', `  / ${moodFace} \\  `, '  \\  ~  /   ', '   `---´    '];
+      break;
     case 'robot':
-      return ['   [ || ]   ', `  { ${moodFace} }  `, '  [====]   ', '  /|__|\\   '];
+      art = ['   [ || ]   ', `  { ${moodFace} }  `, '  [====]   ', '  /|__|\\   '];
+      break;
     case 'slime':
-      return ['    ____    ', '  /      \\  ', ` |  ${moodFace}  | `, '  \\______/  '];
+      art = ['    ____    ', '  /      \\  ', ` |  ${moodFace}  | `, '  \\______/  '];
+      break;
     case 'penguin':
-      return ['    (•)     ', `  <(${moodFace})> `, '    /|\\    ', '    / \\    '];
+      art = ['    (•)     ', `  <(${moodFace})> `, '    /|\\    ', '    / \\    '];
+      break;
     default:
-      return getPetArt(pet, options);
+      art = getPetArt(pet, options);
   }
+
+  // Apply evolution art modifier
+  if (pet?.evolutionPath) {
+    art = applyEvolvedArt(art, pet.evolutionPath);
+  }
+
+  return art;
 }
 
 function friendlyEventLabel(event) {
@@ -312,6 +326,10 @@ function renderDetailCard(options = {}) {
   const reaction = pet.lastReaction?.text || '';
   const recent = Array.isArray(session.recentEvents) ? session.recentEvents.slice(-3) : [];
   const art = getShowcaseArt(pet, { frame: options.frame || 0, blink: false });
+  const eLv = effectiveLevel(pet);
+  const prestige = pet.prestige || 0;
+  const prestigeTag = prestige > 0 ? ` ${colors.brightYellow}\u2726${prestige}${colors.reset}` : '';
+  const evolutionTag = pet.evolvedForm ? ` ${colors.magenta}[${pet.evolvedForm}]${colors.reset}` : '';
   const leftArtWidth = Math.min(24, Math.max(...art.map(visibleLength), 8) + 2);
   const quoteWidth = inner - leftArtWidth - 2;
   const reactionLines = reaction ? wrapText(`"${reaction}"`, Math.max(12, quoteWidth)).slice(0, art.length) : [];
@@ -320,7 +338,7 @@ function renderDetailCard(options = {}) {
   lines.push(`${colors.dim}╭${'─'.repeat(width - 2)}╮${colors.reset}`);
   lines.push(`${colors.dim}│${colors.reset} ${padRight(`${colors.brightCyan}${colors.bold}Claude Buddy${colors.reset}`, inner)} ${colors.dim}│${colors.reset}`);
   lines.push(`${colors.dim}├${'─'.repeat(width - 2)}┤${colors.reset}`);
-  lines.push(`${colors.dim}│${colors.reset} ${padRight(`${pet.speciesEmoji} ${colors.bold}${pet.name}${colors.reset}${shinyTag}  ${rc}Lv.${pet.level} ${pet.rarity}${colors.reset}  ${colors.cyan}${mode}${colors.reset}`, inner)} ${colors.dim}│${colors.reset}`);
+  lines.push(`${colors.dim}│${colors.reset} ${padRight(`${pet.speciesEmoji} ${colors.bold}${pet.name}${colors.reset}${shinyTag}${evolutionTag}${prestigeTag}  ${rc}Lv.${eLv} ${pet.rarity}${colors.reset}  ${colors.cyan}${mode}${colors.reset}`, inner)} ${colors.dim}│${colors.reset}`);
   lines.push(`${colors.dim}│${colors.reset} ${padRight(`XP ${bar(progress, 16, colors.brightGreen, colors)} ${progress}%   ${mood}   streak ${pet.streak || 0}d`, inner)} ${colors.dim}│${colors.reset}`);
   lines.push(`${colors.dim}│${colors.reset} ${padRight(`Energy ${bar(pet.energy, 10, colors.brightYellow, colors)} ${String(pet.energy).padStart(3)}/100   Hunger ${bar(pet.hunger, 10, colors.red, colors)} ${String(pet.hunger).padStart(3)}/100`, inner)} ${colors.dim}│${colors.reset}`);
   lines.push(`${colors.dim}│${colors.reset} ${' '.repeat(inner)} ${colors.dim}│${colors.reset}`);
@@ -363,6 +381,10 @@ function renderSidebarFrame(options = {}) {
   const reaction = options.reaction || pet.lastReaction?.text || '';
   const animation = options.animation || {};
   const recent = Array.isArray(session.recentEvents) ? session.recentEvents.slice(-4) : [];
+  const eLv = effectiveLevel(pet);
+  const prestige = pet.prestige || 0;
+  const prestigeTag = prestige > 0 ? ` ${colors.brightYellow}\u2726${prestige}${colors.reset}` : '';
+  const evolutionTag = pet.evolvedForm ? ` ${colors.magenta}[${pet.evolvedForm}]${colors.reset}` : '';
   const lines = [];
 
   const push = (line = '') => lines.push(clipText(line, inner));
@@ -370,8 +392,8 @@ function renderSidebarFrame(options = {}) {
 
   push(`${colors.brightCyan}${colors.bold}Claude Buddy${colors.reset}`);
   rule();
-  push(`${pet.speciesEmoji} ${colors.bold}${pet.name}${colors.reset}${shinyTag}`);
-  push(`${rc}Lv.${pet.level} ${pet.rarity.toUpperCase()}${colors.reset}  ${colors.cyan}${mode}${colors.reset}`);
+  push(`${pet.speciesEmoji} ${colors.bold}${pet.name}${colors.reset}${shinyTag}${evolutionTag}${prestigeTag}`);
+  push(`${rc}Lv.${eLv} ${pet.rarity.toUpperCase()}${colors.reset}  ${colors.cyan}${mode}${colors.reset}`);
   push(`XP ${progress}%`);
   push(bar(progress, width - 4, colors.brightGreen, colors));
   push('');
