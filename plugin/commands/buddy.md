@@ -1,6 +1,6 @@
 ---
 description: Manage Claude Buddy pet status, statusline, panel, sidebar, and presence mode
-argument-hint: "[status|hatch|feed|play|pet|stats|rename NAME|live|statusline install|statusline remove|panel|sidebar start|sidebar stop|quiet|focus|lively|events]"
+argument-hint: "[status|hatch|feed|play|pet|stats|rename NAME|live|statusline install|statusline remove|panel|sidebar start|sidebar stop|quiet|focus|lively|events|summary|unlocks|evolve|prestige]"
 allowed-tools: Bash(node:*)
 ---
 

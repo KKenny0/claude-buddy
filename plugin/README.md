@@ -1,172 +1,119 @@
 # Claude Buddy 🐾
 
-A virtual pet companion for Claude Code coding sessions.
+A silent coding companion for Claude Code — watches your rhythm, coaches your pace, grows with you.
+
+Your buddy tracks coding patterns via hooks and surfaces insights on the statusline. It stays out of your conversation — no context pollution, no injected reactions. All feedback lives on the statusline, sidebar, or on-demand detail card.
+
+```
+buddy: focus | 🐉 火火 focused | Lv.7 30% | streak 1d | tests idle | ↻ core.js
+```
 
 ## Features
 
-- 🥚 **Deterministic Pet Generation** — SHA-256 based species, rarity, and stats
-- 🎲 **12 Species** across 5 rarity tiers with shiny variants
+- 🥚 **Deterministic Generation** — SHA-256 based species, rarity, and stats. Same username = same pet.
+- 🐉 **12 Species** across 5 rarity tiers (Common → Legendary) with 1% shiny chance
 - 📊 **5-Dimension Stats** — Debug, Patience, Chaos, Wisdom, Snark
-- 📈 **XP & Leveling** — 20 levels with multiple XP sources
-- 🎭 **Dynamic Reactions** — Pet reacts to your coding activities
-- 📟 **Native Statusline** — Always-visible Buddy status in Claude Code
-- 🧾 **Terminal Detail Card** — `/buddy` shows a compact pet status card on demand
-- 🖥️ **Optional tmux Panel/Sidebar** — Temporary popup or live watcher for terminal users
-- 💾 **Persistent State** — Global `~/.claude-buddy/` storage
+- 📈 **XP & Leveling** — 20 levels with level-gated feature unlocks
+- 🧬 **Evolution (Lv.15)** — Species transforms based on highest stat (5 paths)
+- ✦ **Prestige (Lv.20)** — Reset with permanent bonuses
+- 🔇 **Silent by Design** — Hooks produce zero stdout. No conversation injection.
+- 🏃 **Rhythm Coach** — Error avalanche alerts, file grinding detection, session fatigue warnings
+- 📟 **Native Statusline** — Always-visible mood, mode, streak, and coach signals
+- 🧾 **Terminal Detail Card** — `/buddy` shows pet status, art, stats, and recent activity
+- 🖥️ **Optional tmux Panel/Sidebar** — Live watcher for terminal users
 
 ## Installation
-
-### Step 1: Clone & Build
-
-```bash
-git clone https://github.com/KKenny0/claude-buddy.git
-cd claude-buddy
-npm install
-npm run build
-```
-
-### Step 2: Install as Claude Code Plugin
-
-**Option A: One-line install (推荐)**
-
-在 Claude Code 中运行：
 
 ```
 /plugin marketplace add KKenny0/claude-buddy
 /plugin install claude-buddy@claude-buddy
 ```
 
-两行搞定，全局生效，以后每次启动 Claude Code 自动加载。
-
-**Option B: Local plugin (开发/调试)**
-
-```bash
-claude --plugin-dir ~/path/to/claude-buddy
-```
-
-**Option C: Global npm install**
-
-```bash
-cd claude-buddy
-npm install -g .
-```
-
-### Step 3: Verify
-
-启动 Claude Code 后输入：
-```
-/buddy hatch
-```
-看到宠物孵化信息就说明安装成功 🎉
+Restart Claude Code and the plugin is active globally.
 
 ## Quick Start
 
-在 Claude Code 中：
-
 ```
-/buddy hatch          # 孵化你的第一只宠物
-/buddy status         # 查看详情卡
-/buddy live           # 启用 Claude Code statusline
-/buddy panel          # 临时 tmux popup（非 tmux 会显示详情卡）
-/buddy feed           # 喂食
-/buddy pet            # 摸摸 (+2 XP)
-```
-
-在终端中（可选）：
-
-```bash
-# 启动可选实时侧栏
-buddy-core sidebar start
+/claude-buddy:buddy hatch          # Hatch your first pet
+/claude-buddy:buddy                # Show pet detail card
+/claude-buddy:buddy live           # Enable the statusline
+/claude-buddy:buddy feed           # Feed your pet
+/claude-buddy:buddy pet            # Pet your buddy (+2 XP)
 ```
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `buddy-core hatch` | Hatch a new pet |
-| `buddy-core status` | Show pet status |
-| `buddy-core feed` | Feed the pet |
-| `buddy-core play` | Play with pet |
-| `buddy-core pet` | Pet the pet (+2 XP) |
-| `buddy-core stats` | Show detailed stats |
-| `buddy-core rename <name>` | Rename pet |
-| `buddy-core live` | Install native Claude Code Buddy statusline |
-| `buddy-core statusline remove` | Remove Buddy statusline |
-| `buddy-core panel` | Open temporary tmux popup, or print status card outside tmux |
-| `buddy-core sidebar start` | Start optional detached/tmux sidebar |
-| `buddy-core sidebar stop` | Stop optional sidebar |
-| `buddy-core quiet/focus/lively` | Set Buddy presence mode |
-| `buddy-core events` | Show recent Buddy events |
-| `buddy-sidebar` | Start renderer directly |
+| `hatch` | Hatch your first pet (based on your username) |
+| *(no arg)* | Show pet detail card |
+| `feed` | Feed your pet (restores hunger) |
+| `play` | Play with your pet (boosts energy + mood) |
+| `pet` | Pet your buddy (+2 XP, daily cap 20) |
+| `stats` | Show detailed 5-dimension stats |
+| `rename <name>` | Give your pet a custom name |
+| `live` | Install the native Claude Code Buddy statusline |
+| `statusline remove` | Remove Buddy from the statusline |
+| `panel` | Open temporary tmux popup, or print detail card outside tmux |
+| `sidebar start` | Start optional detached/tmux sidebar |
+| `sidebar stop` | Stop the sidebar |
+| `quiet` | Minimal statusline presence |
+| `focus` | Balanced presence (default) |
+| `lively` | More active statusline updates |
+| `events` | Show recent Buddy activity |
+| `summary` | Show session summary (unlocks at Lv.10) |
+| `unlocks` | Show level unlock progress |
+| `evolve` | Trigger evolution (Lv.15+, auto on level up) |
+| `prestige` | Reset with permanent bonuses (Lv.20+) |
 
-## Species
+All commands are prefixed with `/claude-buddy:buddy` in Claude Code.
 
-| Species | Rarity | Emoji |
-|---------|--------|-------|
-| Cat | Common+ | 🐱 |
-| Duck | Common+ | 🦆 |
-| Ghost | Common+ | 👻 |
-| Robot | Common+ | 🤖 |
-| Slime | Common+ | 🟢 |
-| Dragon | Uncommon+ | 🐉 |
-| Owl | Uncommon+ | 🦉 |
-| Penguin | Uncommon+ | 🐧 |
-| Fox | Rare+ | 🦊 |
-| Axolotl | Rare+ | 🦎 |
-| Phoenix | Epic+ | 🔥 |
-| Capybara | Legendary | 🫎 |
+## Level-Gated Unlocks
 
-## XP Sources
+| Level | Unlocks |
+|-------|---------|
+| 1-2 | Basic status (name, mood, XP progress) |
+| 3 | Test status indicator |
+| 5 | File grinding detection |
+| 7 | Session duration / fatigue warning |
+| 10 | Session summary |
+| 13 | Error pattern recognition |
+| 15 | **Evolution** — species transforms |
+| 20 | **Prestige** — reset with bonuses |
 
-| Source | Amount |
-|--------|--------|
-| Session start (daily) | +10 |
-| Petting (20/day) | +2 |
-| Stats check (5/day) | +1 |
-| Git commit | +5 |
-| Every 10 tool uses | +1 |
-| Streak bonus | +5 × streak |
-| Error recovery | +3 |
+## Evolution Paths (Lv.15)
 
-## Presence Surfaces
+Your buddy evolves based on its highest stat:
 
-```bash
-# Native Claude Code statusline
-buddy-core live
-buddy-core statusline remove
+| Highest Stat | Path | Label |
+|-------------|------|-------|
+| Debug | Valor | 勇 |
+| Patience | Zen | 禅 |
+| Chaos | Storm | 雷 |
+| Wisdom | Sage | 智 |
+| Snark | Rogue | 影 |
 
-# On-demand detail card
-buddy-core status
+## Hooks (automatic, silent)
 
-# Temporary tmux popup panel
-buddy-core panel
+No setup needed. Once installed, hooks fire automatically:
 
-# Optional detached/tmux sidebar
-buddy-core sidebar start
-buddy-core sidebar stop
+- **Session start** — Pet wakes up, state updated
+- **After each tool use** — Pet state updated, coach signals computed
+- **Session end** — Pet goes to sleep
 
-# Direct renderer smoke test
-buddy-sidebar --once --width 42 --height 24
-```
+All hooks produce **zero stdout** — no text is injected into your conversation.
 
-The default experience is statusline-first. `/buddy status` prints the full pet card when you want detail. `buddy-core panel` opens a temporary tmux popup when available, and `sidebar start` remains available as a power-user live watcher.
+## Data
 
-The panel/sidebar features:
-- Real-time ASCII art pet rendering
-- Shared terminal renderer with the `/buddy` card
-- Event-driven reactions
-- Rarity-colored UI
-- Recent event timeline
-- Presence modes: quiet, focus, lively
+Stored in `~/.claude-buddy/`:
 
-## Data Location
-
-All data stored in `~/.claude-buddy/`:
-- `pet.json` — Current pet state
-- `events.log` — Event stream
-- `config.json` — User preferences
-- `history.json` — Level milestones
-- `session.json` — Recent events and current session dynamics
+| File | Purpose |
+|------|---------|
+| `pet.json` | Current pet state |
+| `events.log` | Event stream (append-only) |
+| `config.json` | User preferences |
+| `history.json` | Level milestones & streak history |
+| `session.json` | Recent events, presence mode, error/recovery state |
 
 ## License
 

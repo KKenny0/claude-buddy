@@ -10,6 +10,6 @@ If the user invoked `/claude-buddy:buddy` or `/buddy`, run the command below and
 node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js" <command>
 ```
 
-Where `<command>` is one of: `hatch`, `status`, `feed`, `play`, `pet`, `stats`, `rename <name>`, `live`, `statusline install`, `statusline remove`, `panel`, `sidebar start`, `sidebar stop`, `quiet`, `focus`, `lively`, `events`, `summary`, `unlocks`.
+Where `<command>` is one of: `hatch`, `status`, `feed`, `play`, `pet`, `stats`, `rename <name>`, `live`, `statusline install`, `statusline remove`, `panel`, `sidebar start`, `sidebar stop`, `quiet`, `focus`, `lively`, `events`, `summary`, `unlocks`, `evolve`, `prestige`.
 
 > Always use `node "${CLAUDE_PLUGIN_ROOT}/src/bin/buddy-core.js"`. Do NOT try `buddy-core` as a global command.
