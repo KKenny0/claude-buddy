@@ -46,7 +46,7 @@ function sessionDurationMin(session) {
   return (Date.now() - Date.parse(first)) / 60000;
 }
 
-function grindingFile(session) {
+function grindingFile(session, threshold = 5) {
   if (!session.recentTools) return null;
   const counts = {};
   for (const t of session.recentTools) {
@@ -55,7 +55,7 @@ function grindingFile(session) {
     }
   }
   for (const [file, count] of Object.entries(counts)) {
-    if (count >= 5) return file.split('/').pop();
+    if (count >= threshold) return file.split('/').pop();
   }
   return null;
 }
@@ -63,6 +63,30 @@ function grindingFile(session) {
 function formatDuration(min) {
   if (min < 60) return `${Math.round(min)}m`;
   return `${Math.floor(min / 60)}h${Math.round(min % 60)}m`;
+}
+
+// --- Stat-influenced thresholds ---
+
+function errorThreshold(stats) {
+  // Base: 3 consecutive errors. Higher Debug → detects earlier → lower threshold. Range: 2–4
+  const debug = stats?.debug ?? 50;
+  return Math.max(2, Math.round(3 - (debug - 50) / 50));
+}
+
+function grindingThreshold(stats) {
+  // Base: 5 same-file edits. Higher Patience → tolerates more grinding. Range: 3–8
+  const patience = stats?.patience ?? 50;
+  return Math.max(3, Math.round(5 + (patience - 50) / 20));
+}
+
+function fatigueThresholdMin(stats) {
+  // Base: yellow at 60min, red at 120min. Higher Wisdom → alerts earlier. Shift range: ±10min
+  const wisdom = stats?.wisdom ?? 50;
+  const shift = Math.round((wisdom - 50) / 5);
+  return {
+    yellow: Math.max(30, 60 - shift),
+    red: Math.max(60, 120 - shift),
+  };
 }
 
 // --- Statusline rendering ---
@@ -125,13 +149,14 @@ function buildSegments(pet, session, mode) {
   }
 
   // Coach: error avalanche (always shown — critical signal)
-  if ((session.consecutiveErrors || 0) >= 3) {
+  const errThresh = errorThreshold(pet.stats);
+  if ((session.consecutiveErrors || 0) >= errThresh) {
     segs.push(`${c.red}\u00d7${session.consecutiveErrors}${c.reset}`);
   }
 
   // Level 5+: file focus grinding
   if (unlocked(pet.level, 'fileFocus')) {
-    const grinding = grindingFile(session);
+    const grinding = grindingFile(session, grindingThreshold(pet.stats));
     if (grinding) {
       segs.push(`${c.yellow}\u21bb ${grinding}${c.reset}`);
     }
@@ -140,9 +165,10 @@ function buildSegments(pet, session, mode) {
   // Level 7+: session duration / fatigue
   if (unlocked(pet.level, 'sessionDuration')) {
     const dur = sessionDurationMin(session);
-    if (dur >= 120) {
+    const fatigue = fatigueThresholdMin(pet.stats);
+    if (dur >= fatigue.red) {
       segs.push(`${c.red}\u23f0 ${formatDuration(dur)}${c.reset}`);
-    } else if (dur >= 60) {
+    } else if (dur >= fatigue.yellow) {
       segs.push(`${c.yellow}${formatDuration(dur)}${c.reset}`);
     }
   }
@@ -166,3 +192,8 @@ async function main() {
 main().catch(() => {
   process.stdout.write('buddy: unavailable');
 });
+
+// Export for testing
+if (typeof module !== 'undefined') {
+  module.exports = { errorThreshold, grindingThreshold, fatigueThresholdMin, grindingFile };
+}
