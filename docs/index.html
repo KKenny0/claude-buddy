@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Buddy</title>
+  <meta name="description" content="A silent coding companion for Claude Code. Virtual pet, XP and leveling, evolution, prestige. Zero context pollution.">
+  <meta property="og:title" content="Claude Buddy">
+  <meta property="og:description" content="Your silent coding companion for Claude Code">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --canvas: oklch(0.13 0.01 250);
+      --surface: oklch(0.17 0.012 250);
+      --surface-up: oklch(0.21 0.015 250);
+      --text-1: oklch(0.92 0.005 250);
+      --text-2: oklch(0.62 0.01 250);
+      --text-3: oklch(0.45 0.01 250);
+      --accent: oklch(0.78 0.16 155);
+      --accent-hover: oklch(0.82 0.16 155);
+      --amber: oklch(0.80 0.14 80);
+      --magenta: oklch(0.70 0.16 330);
+      --border: oklch(0.25 0.015 250);
+      --radius-sm: 2px;
+      --radius-md: 4px;
+      --radius-lg: 6px;
+      --font-d: 'VT323', monospace;
+      --font-b: 'Menlo', 'Consolas', 'Monaco', 'Courier New', monospace;
+    }
+
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    body {
+      font-family: var(--font-b);
+      background: var(--canvas);
+      color: var(--text-1);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, oklch(0 0 0 / 0.25) 100%);
+      pointer-events: none; z-index: 1000;
+    }
+
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .skip-link {
+      position: absolute; top: -100%; left: 0;
+      background: var(--accent); color: var(--canvas);
+      padding: 8px 16px; z-index: 1001;
+      font-family: var(--font-d); font-size: 1.25rem;
+    }
+    .skip-link:focus { top: 0; }
+
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: oklch(0.13 0.01 250 / 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; height: 52px; }
+    .nav-left { display: flex; align-items: center; gap: 32px; }
+    .nav-logo { font-family: var(--font-d); font-size: 1.4rem; color: var(--text-1); display: flex; align-items: center; gap: 6px; }
+    .nav-links { display: flex; gap: 24px; font-family: var(--font-d); font-size: 1.1rem; }
+    .nav-links a { color: var(--text-2); }
+    .nav-links a:hover { color: var(--text-1); text-decoration: none; }
+
+    /* Lang toggle */
+    .lang-toggle {
+      display: flex; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); overflow: hidden;
+    }
+    .lang-btn {
+      background: none; border: none;
+      color: var(--text-3); padding: 3px 10px;
+      font-family: var(--font-d); font-size: 1rem;
+      cursor: pointer; transition-property: color, background; transition-duration: 0.15s;
+    }
+    .lang-btn:hover { color: var(--text-1); }
+    .lang-btn.active { background: var(--surface-up); color: var(--accent); }
+
+    /* ── Terminal window ── */
+    .terminal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .terminal-bar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 14px;
+      background: var(--surface-up);
+      border-bottom: 1px solid var(--border);
+    }
+    .tdot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-title { font-family: var(--font-b); font-size: 0.7rem; color: var(--text-3); margin-left: 8px; }
+    .terminal-body {
+      padding: 16px 20px;
+      font-family: var(--font-d); font-size: 1.35rem;
+      line-height: 1.5; overflow-x: auto;
+    }
+
+    .scanlines .terminal-body::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(0deg, oklch(0 0 0 / 0.08) 0px, oklch(0 0 0 / 0.08) 1px, transparent 1px, transparent 3px);
+      pointer-events: none;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .cursor { animation: blink 1s step-end infinite; color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 100px 0 72px; text-align: center; }
+    .hero-badge {
+      display: inline-block; font-family: var(--font-d); font-size: 1.15rem;
+      color: var(--text-2); padding: 4px 16px;
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-family: var(--font-d);
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      line-height: 1.1; margin-bottom: 16px;
+    }
+    .hero-sub {
+      font-size: 1rem; color: var(--text-2);
+      max-width: 520px; margin: 0 auto 48px; line-height: 1.7;
+    }
+    .hero-terminals {
+      max-width: 760px; margin: 0 auto 48px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .hero-terminal {
+      box-shadow: 0 0 30px oklch(0.78 0.08 155 / 0.08), 0 0 80px oklch(0.78 0.08 155 / 0.03);
+    }
+    .statusline-text { color: var(--accent); }
+    .detail-card { text-align: left; }
+    .detail-card .pet-name { color: var(--amber); }
+    .detail-card .ascii-art { color: var(--accent); margin: 6px 0; }
+    .detail-card .pet-quote { color: var(--text-3); font-size: 1.1rem; }
+    .detail-card .stats-line { color: var(--text-2); }
+    .detail-card .xp-bar { color: var(--amber); }
+
+    .hero-actions { display: flex; gap: 16px; justify-content: center; }
+
+    .btn {
+      display: inline-flex; align-items: center;
+      font-family: var(--font-d); font-size: 1.35rem;
+      padding: 10px 28px; border-radius: var(--radius-md);
+      cursor: pointer; transition-property: transform, background, border-color;
+      transition-duration: 0.15s;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary { background: var(--accent); color: var(--canvas); border: none; }
+    .btn-primary:hover { background: var(--accent-hover); text-decoration: none; }
+    .btn-secondary { background: transparent; color: var(--accent); border: 1px solid oklch(0.78 0.08 155); }
+    .btn-secondary:hover { border-color: var(--accent); background: oklch(0.78 0.04 155); text-decoration: none; }
+
+    /* ── Stats bar ── */
+    .stats-bar { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 18px 0; }
+    .stats-bar .container { display: flex; justify-content: center; gap: 48px; font-family: var(--font-d); font-size: 1.2rem; }
+    .stat-item { color: var(--text-2); }
+    .stat-value { color: var(--accent); }
+
+    /* ── Sections ── */
+    .section { padding: 88px 0; }
+    .section-title {
+      font-family: var(--font-d);
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      margin-bottom: 48px; text-align: center;
+    }
+
+    /* ── Features ── */
+    .features-list { max-width: 720px; margin: 0 auto; }
+    .feature-item { display: flex; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--border); }
+    .feature-item:last-child { border-bottom: none; }
+    .feature-emoji { font-size: 1.4rem; flex-shrink: 0; width: 32px; text-align: center; padding-top: 2px; }
+    .feature-content h3 { font-family: var(--font-d); font-size: 1.35rem; margin-bottom: 4px; }
+    .feature-content p { font-size: 0.88rem; color: var(--text-2); line-height: 1.65; }
+
+    /* ── Species ── */
+    .species-tiers { max-width: 720px; margin: 0 auto; }
+    .species-tier { margin-bottom: 12px; }
+    .species-tier-label { font-family: var(--font-d); font-size: 1.1rem; margin-bottom: 6px; padding-left: 4px; }
+    .species-tier-items {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      padding: 10px 16px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+    }
+    .species-item { font-family: var(--font-d); font-size: 1.15rem; color: var(--text-2); display: flex; align-items: center; gap: 5px; }
+
+    .tier-legendary .species-tier-label { color: var(--amber); }
+    .tier-legendary .species-tier-items { border-color: oklch(0.80 0.06 80 / 0.4); }
+    .tier-epic .species-tier-label { color: var(--magenta); }
+    .tier-epic .species-tier-items { border-color: oklch(0.70 0.06 330 / 0.3); }
+    .tier-rare .species-tier-label { color: oklch(0.72 0.10 200); }
+    .tier-rare .species-tier-items { border-color: oklch(0.72 0.04 200 / 0.3); }
+
+    /* ── Evolution ── */
+    .evolution-paths { max-width: 620px; margin: 0 auto; }
+    .evo-path {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 20px; margin-bottom: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-family: var(--font-d); font-size: 1.25rem;
+    }
+    .evo-stat { color: var(--text-2); min-width: 76px; }
+    .evo-arrow { color: var(--text-3); }
+    .evo-symbol { font-size: 1.3rem; }
+    .evo-label { color: var(--accent); }
+    .evo-art { color: var(--text-3); margin-left: auto; font-size: 0.95rem; }
+
+    .evo-note {
+      text-align: center; margin-top: 24px;
+      font-size: 0.88rem; color: var(--text-3);
+    }
+
+    /* ── Install ── */
+    .install-section { text-align: center; }
+    .install-commands { max-width: 620px; margin: 0 auto; }
+    .install-cmd {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      font-family: var(--font-d); font-size: 1.2rem;
+      margin-bottom: 8px;
+    }
+    .install-cmd code { color: var(--accent); }
+    .copy-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-3); padding: 2px 12px;
+      font-family: var(--font-d); font-size: 1rem;
+      border-radius: var(--radius-sm); cursor: pointer;
+      transition-property: color, border-color; transition-duration: 0.15s;
+    }
+    .copy-btn:hover { color: var(--accent); border-color: oklch(0.78 0.08 155); }
+    .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+    .install-note { color: var(--text-3); font-size: 0.85rem; margin-top: 16px; }
+    .install-alt { margin-top: 28px; font-size: 0.88rem; color: var(--text-2); }
+    .install-alt a { color: var(--accent); }
+
+    /* ── Level unlocks ── */
+    .unlocks-grid {
+      max-width: 560px; margin: 0 auto;
+      font-family: var(--font-d); font-size: 1.15rem;
+    }
+    .unlock-row { display: flex; gap: 12px; padding: 6px 0; border-bottom: 1px solid oklch(0.25 0.01 250 / 0.5); }
+    .unlock-row:last-child { border-bottom: none; }
+    .unlock-lvl { color: var(--amber); min-width: 50px; }
+    .unlock-desc { color: var(--text-2); }
+
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--border); padding: 28px 0; }
+    footer .container { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: var(--text-3); }
+    .footer-logo { font-family: var(--font-d); font-size: 1.05rem; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
+    footer a { color: var(--text-2); }
+
+    /* ── Reveal on scroll ── */
+    .reveal { opacity: 0; transform: translateY(16px); transition-property: opacity, transform; transition-duration: 0.5s; transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hero { padding: 72px 0 48px; }
+      .stats-bar .container { gap: 20px; flex-wrap: wrap; justify-content: center; font-size: 1.05rem; }
+      .hero-actions { flex-direction: column; align-items: center; }
+      footer .container { flex-direction: column; gap: 12px; text-align: center; }
+      .terminal-body { font-size: 1.1rem; }
+      .detail-card .terminal-body { font-size: 1rem; }
+      .evo-path { font-size: 1.1rem; gap: 6px; padding: 10px 14px; }
+      .install-cmd { font-size: 1rem; padding: 10px 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .cursor { animation: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <nav>
+    <div class="container">
+      <div class="nav-left">
+        <a href="/" class="nav-logo">🐾 claude buddy</a>
+        <div class="nav-links">
+          <a href="#features" data-i18n="nav.features">Features</a>
+          <a href="#species" data-i18n="nav.species">Species</a>
+          <a href="#evolution" data-i18n="nav.evolution">Evolution</a>
+          <a href="#install" data-i18n="nav.install">Install</a>
+          <a href="https://github.com/KKenny0/claude-buddy" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+      <div class="lang-toggle">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="zh">中文</button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container">
+        <div class="hero-badge" data-i18n="hero.badge">🐾 Claude Code plugin</div>
+        <h1 data-i18n="hero.title">Your silent coding companion</h1>
+        <p class="hero-sub" data-i18n="hero.sub">A pet buddy that watches your rhythm, coaches your pace, and grows with you. Zero context pollution, zero conversation injection.</p>
+
+        <div class="hero-terminals">
+          <div class="terminal hero-terminal scanlines">
+            <div class="terminal-bar">
+              <span class="tdot" style="background:oklch(0.70 0.18 25)"></span>
+              <span class="tdot" style="background:oklch(0.80 0.15 85)"></span>
+              <span class="tdot" style="background:oklch(0.65 0.16 155)"></span>
+              <span class="terminal-title">claude code — statusline</span>
+            </div>
+            <div class="terminal-body">
+              <span class="statusline-text">buddy: focus | 🐉 火火 focused | Lv.7 30% | streak 1d | tests idle | ↻ core.js</span><span class="cursor">█</span>
+            </div>
+          </div>
+
+          <div class="terminal detail-card">
+            <div class="terminal-bar">
+              <span class="tdot" style="background:oklch(0.70 0.18 25)"></span>
+              <span class="tdot" style="background:oklch(0.80 0.15 85)"></span>
+              <span class="tdot" style="background:oklch(0.65 0.16 155)"></span>
+              <span class="terminal-title">/buddy</span>
+            </div>
+            <div class="terminal-body">
+              <span class="pet-name">🐉 火火  Lv.7 rare  focus</span><br>
+              <span class="xp-bar">XP ████░░░░░░░░░░░░ 25%</span>   🤔 focused   streak 1d<br>
+              <br>
+              <pre class="ascii-art">       /^\
+    &lt;  •_•  &gt;→
+   (   ~   )
+    `-zzzz-´</pre>
+              <span class="pet-quote">"跟着你的改动移动视线"</span><br>
+              <br>
+              <span class="stats-line">Debug 33   Patience 28   Chaos 46   Wisdom 60   Snark 38</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <a href="#install" class="btn btn-primary" data-i18n="hero.install">Install</a>
+          <a href="https://github.com/KKenny0/claude-buddy" target="_blank" rel="noopener" class="btn btn-secondary" data-i18n="hero.source">View source</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="stats-bar reveal">
+      <div class="container">
+        <span class="stat-item"><span class="stat-value">12</span> <span data-i18n="stat.species">species</span></span>
+        <span class="stat-item"><span class="stat-value">5</span> <span data-i18n="stat.paths">evolution paths</span></span>
+        <span class="stat-item"><span class="stat-value">20</span> <span data-i18n="stat.levels">levels</span></span>
+        <span class="stat-item"><span class="stat-value">0</span> <span data-i18n="stat.noise">noise bytes</span></span>
+      </div>
+    </div>
+
+    <section id="features" class="section">
+      <div class="container">
+        <h2 class="section-title reveal" data-i18n="features.title">What it does</h2>
+        <div class="features-list">
+          <div class="feature-item reveal">
+            <span class="feature-emoji">🔇</span>
+            <div class="feature-content">
+              <h3 data-i18n="f1.t">Silent by design</h3>
+              <p data-i18n="f1.d">Hooks produce zero stdout. No additionalContext, no conversation injection. All feedback lives on the statusline and on-demand detail card.</p>
+            </div>
+          </div>
+          <div class="feature-item reveal">
+            <span class="feature-emoji">🏃</span>
+            <div class="feature-content">
+              <h3 data-i18n="f2.t">Rhythm coach</h3>
+              <p data-i18n="f2.d">Error avalanche alerts, file grinding detection, session fatigue warnings. Your buddy watches your coding patterns and surfaces signals when they matter.</p>
+            </div>
+          </div>
+          <div class="feature-item reveal">
+            <span class="feature-emoji">📈</span>
+            <div class="feature-content">
+              <h3 data-i18n="f3.t">XP and leveling</h3>
+              <p data-i18n="f3.d">20 levels with gated feature unlocks. Gain XP from commits, tool usage, streaks, and daily interactions. Hatch at Lv.1, unlock the statusline at Lv.3, evolve at Lv.15, prestige at Lv.20.</p>
+            </div>
+          </div>
+          <div class="feature-item reveal">
+            <span class="feature-emoji">🥚</span>
+            <div class="feature-content">
+              <h3 data-i18n="f4.t">Deterministic generation</h3>
+              <p data-i18n="f4.d">SHA-256 based species, rarity, and stats derived from your username. Same user always gets the same pet. Plus a 1% shiny chance.</p>
+            </div>
+          </div>
+          <div class="feature-item reveal">
+            <span class="feature-emoji">📟</span>
+            <div class="feature-content">
+              <h3 data-i18n="f5.t">Native statusline</h3>
+              <p data-i18n="f5.d">Always-visible mood, mode, streak, and coach signals right in Claude Code. Three presence modes: quiet, focus (default), and lively.</p>
+            </div>
+          </div>
+          <div class="feature-item reveal">
+            <span class="feature-emoji">🖥️</span>
+            <div class="feature-content">
+              <h3 data-i18n="f6.t">tmux panel</h3>
+              <p data-i18n="f6.d">Optional temporary popup or live sidebar watcher for terminal power users. Works outside Claude Code too.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="species" class="section">
+      <div class="container">
+        <h2 class="section-title reveal" data-i18n="species.title">12 species, 5 rarity tiers</h2>
+        <div class="species-tiers">
+          <div class="species-tier tier-legendary reveal">
+            <div class="species-tier-label" data-i18n="sp.legendary">Legendary (1%)</div>
+            <div class="species-tier-items">
+              <span class="species-item">🫎 Capybara</span>
+            </div>
+          </div>
+          <div class="species-tier tier-epic reveal">
+            <div class="species-tier-label" data-i18n="sp.epic">Epic (4%)</div>
+            <div class="species-tier-items">
+              <span class="species-item">🔥 Phoenix</span>
+            </div>
+          </div>
+          <div class="species-tier tier-rare reveal">
+            <div class="species-tier-label" data-i18n="sp.rare">Rare (10%)</div>
+            <div class="species-tier-items">
+              <span class="species-item">🦊 Fox</span>
+              <span class="species-item">🦎 Axolotl</span>
+            </div>
+          </div>
+          <div class="species-tier reveal">
+            <div class="species-tier-label" data-i18n="sp.uncommon">Uncommon (25%)</div>
+            <div class="species-tier-items">
+              <span class="species-item">🐉 Dragon</span>
+              <span class="species-item">🦉 Owl</span>
+              <span class="species-item">🐧 Penguin</span>
+            </div>
+          </div>
+          <div class="species-tier reveal">
+            <div class="species-tier-label" data-i18n="sp.common">Common (60%)</div>
+            <div class="species-tier-items">
+              <span class="species-item">🐱 Cat</span>
+              <span class="species-item">🦆 Duck</span>
+              <span class="species-item">👻 Ghost</span>
+              <span class="species-item">🤖 Robot</span>
+              <span class="species-item">🟢 Slime</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="evolution" class="section">
+      <div class="container">
+        <h2 class="section-title reveal" data-i18n="evo.title">Evolution at Lv.15</h2>
+        <div class="evolution-paths">
+          <div class="evo-path reveal">
+            <span class="evo-stat">Debug</span>
+            <span class="evo-arrow">→</span>
+            <span class="evo-symbol">⚔</span>
+            <span class="evo-label">Valor 勇</span>
+            <span class="evo-art" data-i18n="evoart.valor">Sword indicators</span>
+          </div>
+          <div class="evo-path reveal">
+            <span class="evo-stat">Patience</span>
+            <span class="evo-arrow">→</span>
+            <span class="evo-symbol">≋</span>
+            <span class="evo-label">Zen 禅</span>
+            <span class="evo-art" data-i18n="evoart.zen">Serene aura</span>
+          </div>
+          <div class="evo-path reveal">
+            <span class="evo-stat">Chaos</span>
+            <span class="evo-arrow">→</span>
+            <span class="evo-symbol">⚡</span>
+            <span class="evo-label">Storm 雷</span>
+            <span class="evo-art" data-i18n="evoart.storm">Electric sparks</span>
+          </div>
+          <div class="evo-path reveal">
+            <span class="evo-stat">Wisdom</span>
+            <span class="evo-arrow">→</span>
+            <span class="evo-symbol">✧</span>
+            <span class="evo-label">Sage 智</span>
+            <span class="evo-art" data-i18n="evoart.sage">Wisdom glow</span>
+          </div>
+          <div class="evo-path reveal">
+            <span class="evo-stat">Snark</span>
+            <span class="evo-arrow">→</span>
+            <span class="evo-symbol">◇</span>
+            <span class="evo-label">Rogue 影</span>
+            <span class="evo-art" data-i18n="evoart.rogue">Shadow wisps</span>
+          </div>
+        </div>
+        <p class="evo-note reveal" data-i18n="evo.note">Evolution is automatic at Lv.15, determined by your highest stat. At Lv.20, prestige resets your level with permanent bonuses.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title reveal" data-i18n="unlocks.title">Level-gated unlocks</h2>
+        <div class="unlocks-grid">
+          <div class="unlock-row reveal"><span class="unlock-lvl">Lv.3</span><span class="unlock-desc" data-i18n="u3">Test status indicator</span></div>
+          <div class="unlock-row reveal"><span class="unlock-lvl">Lv.5</span><span class="unlock-desc" data-i18n="u5">File grinding detection</span></div>
+          <div class="unlock-row reveal"><span class="unlock-lvl">Lv.7</span><span class="unlock-desc" data-i18n="u7">Session duration and fatigue warning</span></div>
+          <div class="unlock-row reveal"><span class="unlock-lvl">Lv.10</span><span class="unlock-desc" data-i18n="u10">Session summary command</span></div>
+          <div class="unlock-row reveal"><span class="unlock-lvl">Lv.13</span><span class="unlock-desc" data-i18n="u13">Error pattern recognition</span></div>
+          <div class="unlock-row reveal"><span class="unlock-lvl">Lv.15</span><span class="unlock-desc" data-i18n="u15">Evolution: species transforms by highest stat</span></div>
+          <div class="unlock-row reveal"><span class="unlock-lvl">Lv.20</span><span class="unlock-desc" data-i18n="u20">Prestige: reset with permanent bonuses</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install" class="section install-section">
+      <div class="container">
+        <h2 class="section-title reveal" data-i18n="install.title">Get started</h2>
+        <div class="install-commands reveal">
+          <div class="install-cmd">
+            <code>/plugin marketplace add KKenny0/claude-buddy</code>
+            <button class="copy-btn" data-copy="/plugin marketplace add KKenny0/claude-buddy" aria-label="Copy command">copy</button>
+          </div>
+          <div class="install-cmd">
+            <code>/plugin install claude-buddy@claude-buddy</code>
+            <button class="copy-btn" data-copy="/plugin install claude-buddy@claude-buddy" aria-label="Copy command">copy</button>
+          </div>
+        </div>
+        <p class="install-note reveal" data-i18n="install.note">Restart Claude Code and the plugin is active globally.</p>
+        <p class="install-alt reveal" data-i18n-html="install.alt">Or <a href="https://github.com/KKenny0/claude-buddy#manual-setup">install manually</a> from source.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span class="footer-logo">🐾 claude buddy</span>
+      <span data-i18n-html="footer"><span data-i18n="footer.lic">MIT license</span> · <a href="https://github.com/KKenny0/claude-buddy">GitHub</a></span>
+    </div>
+  </footer>
+
+  <script>
+    const T = {
+      en: {
+        'nav.features': 'Features',
+        'nav.species': 'Species',
+        'nav.evolution': 'Evolution',
+        'nav.install': 'Install',
+        'hero.badge': '🐾 Claude Code plugin',
+        'hero.title': 'Your silent coding companion',
+        'hero.sub': 'A pet buddy that watches your rhythm, coaches your pace, and grows with you. Zero context pollution, zero conversation injection.',
+        'hero.install': 'Install',
+        'hero.source': 'View source',
+        'stat.species': 'species',
+        'stat.paths': 'evolution paths',
+        'stat.levels': 'levels',
+        'stat.noise': 'noise bytes',
+        'features.title': 'What it does',
+        'f1.t': 'Silent by design',
+        'f1.d': 'Hooks produce zero stdout. No additionalContext, no conversation injection. All feedback lives on the statusline and on-demand detail card.',
+        'f2.t': 'Rhythm coach',
+        'f2.d': 'Error avalanche alerts, file grinding detection, session fatigue warnings. Your buddy watches your coding patterns and surfaces signals when they matter.',
+        'f3.t': 'XP and leveling',
+        'f3.d': '20 levels with gated feature unlocks. Gain XP from commits, tool usage, streaks, and daily interactions. Hatch at Lv.1, unlock the statusline at Lv.3, evolve at Lv.15, prestige at Lv.20.',
+        'f4.t': 'Deterministic generation',
+        'f4.d': 'SHA-256 based species, rarity, and stats derived from your username. Same user always gets the same pet. Plus a 1% shiny chance.',
+        'f5.t': 'Native statusline',
+        'f5.d': 'Always-visible mood, mode, streak, and coach signals right in Claude Code. Three presence modes: quiet, focus (default), and lively.',
+        'f6.t': 'tmux panel',
+        'f6.d': 'Optional temporary popup or live sidebar watcher for terminal power users. Works outside Claude Code too.',
+        'species.title': '12 species, 5 rarity tiers',
+        'sp.legendary': 'Legendary (1%)',
+        'sp.epic': 'Epic (4%)',
+        'sp.rare': 'Rare (10%)',
+        'sp.uncommon': 'Uncommon (25%)',
+        'sp.common': 'Common (60%)',
+        'evo.title': 'Evolution at Lv.15',
+        'evoart.valor': 'Sword indicators',
+        'evoart.zen': 'Serene aura',
+        'evoart.storm': 'Electric sparks',
+        'evoart.sage': 'Wisdom glow',
+        'evoart.rogue': 'Shadow wisps',
+        'evo.note': 'Evolution is automatic at Lv.15, determined by your highest stat. At Lv.20, prestige resets your level with permanent bonuses.',
+        'unlocks.title': 'Level-gated unlocks',
+        'u3': 'Test status indicator',
+        'u5': 'File grinding detection',
+        'u7': 'Session duration and fatigue warning',
+        'u10': 'Session summary command',
+        'u13': 'Error pattern recognition',
+        'u15': 'Evolution: species transforms by highest stat',
+        'u20': 'Prestige: reset with permanent bonuses',
+        'install.title': 'Get started',
+        'install.note': 'Restart Claude Code and the plugin is active globally.',
+        'install.alt': 'Or <a href="https://github.com/KKenny0/claude-buddy#manual-setup">install manually</a> from source.',
+        'footer.lic': 'MIT license',
+        'copy': 'copy',
+        'copied': 'copied',
+      },
+      zh: {
+        'nav.features': '功能',
+        'nav.species': '物种',
+        'nav.evolution': '进化',
+        'nav.install': '安装',
+        'hero.badge': '🐾 Claude Code 插件',
+        'hero.title': '你的静默编程伙伴',
+        'hero.sub': '一个宠物伙伴，注视你的节奏，指导你的步调，与你共同成长。零上下文污染，零对话注入。',
+        'hero.install': '安装',
+        'hero.source': '查看源码',
+        'stat.species': '个物种',
+        'stat.paths': '条进化路线',
+        'stat.levels': '个等级',
+        'stat.noise': '字节噪音',
+        'features.title': '功能一览',
+        'f1.t': '静默设计',
+        'f1.d': '钩子产生零标准输出。无 additionalContext，无对话注入。所有反馈都呈现在状态行和按需展示的详情卡片上。',
+        'f2.t': '节奏教练',
+        'f2.d': '错误雪崩警报，文件磨 grind 检测，会话疲劳警告。你的伙伴注视你的编程模式，在关键时刻提供信号。',
+        'f3.t': '经验与升级',
+        'f3.d': '20 个等级，每个等级解锁新功能。通过提交代码、工具使用、连续打卡和日常互动获取经验。Lv.1 孵化，Lv.3 解锁状态行，Lv.15 进化，Lv.20 声望重置。',
+        'f4.t': '确定性生成',
+        'f4.d': '基于 SHA-256 的物种、稀有度和属性，从你的用户名派生。同一用户总是获得相同的宠物。另有 1% 的闪光概率。',
+        'f5.t': '原生状态行',
+        'f5.d': '在 Claude Code 中始终可见的情绪、模式、连续打卡和教练信号。三种存在模式：安静、专注（默认）、活跃。',
+        'f6.t': 'tmux 面板',
+        'f6.d': '可选的临时弹出窗口或实时侧边栏监控，适合终端高级用户。也可在 Claude Code 外使用。',
+        'species.title': '12 个物种，5 个稀有度等级',
+        'sp.legendary': '传说 (1%)',
+        'sp.epic': '史诗 (4%)',
+        'sp.rare': '稀有 (10%)',
+        'sp.uncommon': '精良 (25%)',
+        'sp.common': '普通 (60%)',
+        'evo.title': 'Lv.15 进化系统',
+        'evoart.valor': '剑形指示器',
+        'evoart.zen': '宁静光环',
+        'evoart.storm': '电弧火花',
+        'evoart.sage': '智慧之光',
+        'evoart.rogue': '暗影飘絮',
+        'evo.note': '进化在 Lv.15 自动触发，由你最高的属性决定。在 Lv.20，声望系统会重置你的等级并给予永久加成。',
+        'unlocks.title': '等级解锁系统',
+        'u3': '测试状态指示器',
+        'u5': '文件磨 grind 检测',
+        'u7': '会话时长与疲劳警告',
+        'u10': '会话总结命令',
+        'u13': '错误模式识别',
+        'u15': '进化：物种根据最高属性变化',
+        'u20': '声望：重置等级并获得永久加成',
+        'install.title': '开始使用',
+        'install.note': '重启 Claude Code，插件即刻全局生效。',
+        'install.alt': '或从源码<a href="https://github.com/KKenny0/claude-buddy#manual-setup">手动安装</a>。',
+        'footer.lic': 'MIT 许可证',
+        'copy': '复制',
+        'copied': '已复制',
+      }
+    };
+
+    let lang = localStorage.getItem('buddy-lang') || 'en';
+
+    function applyLang(l) {
+      lang = l;
+      localStorage.setItem('buddy-lang', l);
+      document.documentElement.lang = l;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const k = el.getAttribute('data-i18n');
+        if (T[l][k] !== undefined) el.textContent = T[l][k];
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const k = el.getAttribute('data-i18n-html');
+        if (T[l][k] !== undefined) el.innerHTML = T[l][k];
+      });
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === l);
+      });
+      document.querySelectorAll('.copy-btn').forEach(b => {
+        if (!b.classList.contains('copied')) b.textContent = T[l].copy;
+      });
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(b => {
+      b.addEventListener('click', () => applyLang(b.dataset.lang));
+    });
+
+    if (lang !== 'en') applyLang(lang);
+
+    // Reveal on scroll
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+    // Copy buttons
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.textContent = T[lang].copy;
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.copy).then(() => {
+          btn.textContent = T[lang].copied;
+          btn.classList.add('copied');
+          setTimeout(() => { btn.textContent = T[lang].copy; btn.classList.remove('copied'); }, 1500);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
