@@ -79,7 +79,6 @@ function defaultSession() {
     consecutiveErrors: 0,
     lastFailureAt: null,
     lastRecoveryAt: null,
-    lastConversationAt: null,
     lastActivityAt: null,
     recentTools: [],
     recentEvents: [],

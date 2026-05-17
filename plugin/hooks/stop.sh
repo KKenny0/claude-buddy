@@ -1,7 +1,7 @@
 #!/bin/bash
 # Claude Buddy — stop hook
 # Fires when a Claude Code session ends. The pet goes to sleep.
-# Uses additionalContext to show a goodbye message to Claude (and user).
+# Produces no stdout — all feedback goes to statusline/sidebar.
 
 set -euo pipefail
 
@@ -23,21 +23,9 @@ if [ -n "$BUDDY_CORE" ]; then
   BUDDY_RESULT=$($BUDDY_CORE session-stop --json 2>/dev/null || true)
 fi
 
-if [ -n "${BUDDY_RESULT:-}" ]; then
-  printf '%s' "$BUDDY_RESULT" | node -e "
-    let d='';
-    process.stdin.on('data',c=>d+=c);
-    process.stdin.on('end',()=>{
-      try {
-        const payload = JSON.parse(d);
-        const reaction = payload.reaction;
-        if (reaction && reaction.text) {
-          console.log(JSON.stringify({ additionalContext: reaction.text }));
-        }
-      } catch {}
-    });
-  " 2>/dev/null || true
-fi
+# No stdout output — buddy state is shown on statusline/sidebar only.
+# Stop hook stdout gets injected as additionalContext into the agent,
+# so we intentionally output nothing to avoid polluting the agent's context.
 
 # Reset reaction counter for next session
 rm -f "$BUDDY_HOME/.react-counter" 2>/dev/null || true

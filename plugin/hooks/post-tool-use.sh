@@ -1,7 +1,7 @@
 #!/bin/bash
 # Claude Buddy — post-tool-use hook
-# Fires after Claude uses any tool. The pet reacts!
-# Uses additionalContext to inject reaction into Claude's next turn.
+# Fires after Claude uses any tool. Updates pet state and reactions.
+# Produces no stdout — all feedback goes to statusline/sidebar.
 
 set -euo pipefail
 
@@ -56,18 +56,6 @@ if [ -n "$BUDDY_CORE" ] && [ -n "$TOOL_NAME" ]; then
   BUDDY_RESULT=$($BUDDY_CORE tool-use "$TOOL_NAME" "$TOOL_FILE" "$TOOL_COMMAND" --json 2>/dev/null || true)
 fi
 
-if [ -n "${BUDDY_RESULT:-}" ]; then
-  printf '%s' "$BUDDY_RESULT" | node -e "
-    let d='';
-    process.stdin.on('data',c=>d+=c);
-    process.stdin.on('end',()=>{
-      try {
-        const payload = JSON.parse(d);
-        const reaction = payload.reaction;
-        if (reaction && Array.isArray(reaction.surface) && reaction.surface.includes('conversation') && reaction.text) {
-          console.log(JSON.stringify({ additionalContext: reaction.text }));
-        }
-      } catch {}
-    });
-  " 2>/dev/null || true
-fi
+# No stdout output — buddy reactions are shown on statusline/sidebar only.
+# PostToolUse hook stdout gets injected as additionalContext into the agent,
+# so we intentionally output nothing to avoid polluting the agent's context.

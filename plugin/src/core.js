@@ -59,30 +59,12 @@ function setLiveMode(mode) {
   return nextMode;
 }
 
-function shouldSurfaceToConversation(priority, mode, session = readSession()) {
-  const currentMode = normalizeMode(mode);
-  if (priority === 'critical') return true;
-  const last = session.lastConversationAt ? Date.parse(session.lastConversationAt) : 0;
-  const cooldownMs = currentMode === 'lively' ? 8000 : 20000;
-  if (last && Date.now() - last < cooldownMs && priority !== 'level_up' && priority !== 'interaction') {
-    return false;
-  }
-  if (currentMode === 'quiet') return priority === 'level_up' || priority === 'interaction';
-  if (currentMode === 'lively') return ['normal', 'important', 'level_up', 'interaction'].includes(priority);
-  return ['important', 'level_up', 'interaction'].includes(priority);
-}
-
 function createReaction(pet, text, mood, priority, mode, ttlMs = 8000) {
-  const session = readSession();
-  const surface = ['live'];
-  if (shouldSurfaceToConversation(priority, mode, session)) {
-    surface.push('conversation');
-  }
   return {
     text,
     mood,
     priority,
-    surface,
+    surface: ['live'],
     ttlMs,
     timestamp: new Date().toISOString(),
   };
@@ -98,9 +80,6 @@ function isCheckCommand(command) {
 
 function rememberEvent(event) {
   const session = readSession();
-  if (event.type !== 'session_start' && event.reaction?.surface?.includes('conversation')) {
-    session.lastConversationAt = event.timestamp || new Date().toISOString();
-  }
   const summary = {
     type: event.type,
     tool: event.tool,
@@ -654,7 +633,6 @@ module.exports = {
   getLiveMode,
   setLiveMode,
   normalizeMode,
-  shouldSurfaceToConversation,
   createReaction,
   reactionForTool,
   formatStatus,

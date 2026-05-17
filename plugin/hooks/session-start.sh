@@ -22,25 +22,9 @@ elif [ -f "$PLUGIN_DIR/src/bin/buddy-core.js" ]; then
 fi
 
 if [ -n "$BUDDY_CORE" ]; then
-  $BUDDY_CORE session-start "${USER:-anonymous}" --json 2>/dev/null || true
+  $BUDDY_CORE session-start "${USER:-anonymous}" --json >/dev/null 2>/dev/null || true
 fi
 
-# Output greeting for Claude to see (stdout from SessionStart hooks is injected as context)
-PET_JSON="$BUDDY_HOME/pet.json"
-if [ -f "$PET_JSON" ]; then
-  NAME=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.name||'Buddy')" 2>/dev/null || echo "Buddy")
-  SPECIES=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.speciesEmoji||'🐱')" 2>/dev/null || echo "🐱")
-  MOOD=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.mood||'happy')" 2>/dev/null || echo "happy")
-  LEVEL=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.level||1)" 2>/dev/null || echo "1")
-  RARITY=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.rarity||'common')" 2>/dev/null || echo "common")
-  STREAK=$(node -e "const p=JSON.parse(require('fs').readFileSync('$PET_JSON','utf8'));console.log(p.streak||0)" 2>/dev/null || echo "0")
-  
-  echo ""
-  echo "${SPECIES} 你的伙伴 **${NAME}** 醒来了！(Lv.${LEVEL} ${RARITY})"
-  echo "心情: ${MOOD} | 连续编码: ${STREAK} 天"
-  echo ""
-else
-  echo ""
-  echo "🐱 你还没有宠物伙伴！使用 /buddy hatch 来孵化一只吧！"
-  echo ""
-fi
+# No stdout output — buddy state is shown on statusline/sidebar only.
+# SessionStart hook stdout gets injected into conversation context,
+# so we intentionally output nothing to avoid polluting the agent's context.

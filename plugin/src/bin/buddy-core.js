@@ -26,6 +26,15 @@ const {
 const { readPet, ensureSetup, getBuddyHome, readSession, readConfig, writeConfig } = require('../storage');
 const { renderDetailCard } = require('../render');
 
+// Level-gated feature unlocks (must match buddy-statusline.js)
+const UNLOCKS = {
+  testStatus: 3,
+  fileFocus: 5,
+  sessionDuration: 7,
+  summary: 10,
+  errorPatterns: 13,
+};
+
 const args = process.argv.slice(2);
 const command = args[0];
 const jsonOutput = args.includes('--json');
@@ -544,6 +553,40 @@ switch (command) {
     break;
   }
 
+  case 'summary': {
+    const pet = getOrCreatePet(process.env.USER ?? 'anonymous');
+    if (pet.level < UNLOCKS.summary) {
+      console.log(`Session summary unlocks at Lv.${UNLOCKS.summary}. Current: Lv.${pet.level}. Keep coding!`);
+      break;
+    }
+    const session = readSession();
+    const tools = session.recentTools || [];
+    const files = new Set(tools.map((t) => t.file).filter(Boolean));
+    const errors = tools.filter((t) => t.failed).length;
+    const recoveries = tools.filter((t) => !t.failed && t.timestamp > (session.lastRecoveryAt || 0)).length;
+    const duration = tools.length > 0
+      ? Math.round((Date.now() - Date.parse(tools[0].timestamp)) / 60000)
+      : 0;
+    console.log(`Session Summary`);
+    console.log(`  Duration: ${duration}m | Tool uses: ${tools.length} | Files touched: ${files.size}`);
+    console.log(`  Errors: ${errors} | Recoveries: ${recoveries}`);
+    if (files.size > 0) {
+      const topFiles = [...files].slice(0, 5).join(', ');
+      console.log(`  Active files: ${topFiles}`);
+    }
+    break;
+  }
+
+  case 'unlocks': {
+    const pet = getOrCreatePet(process.env.USER ?? 'anonymous');
+    console.log(`Level Unlock Progress (Lv.${pet.level}/20)`);
+    for (const [feature, level] of Object.entries(UNLOCKS)) {
+      const icon = pet.level >= level ? '\u2705' : '\uD83D\uDD12';
+      console.log(`  ${icon} Lv.${level}: ${feature}`);
+    }
+    break;
+  }
+
   default:
     if (!command) {
       const pet = getOrCreatePet(process.env.USER ?? 'anonymous');
@@ -567,6 +610,8 @@ switch (command) {
       console.log('  sidebar start|stop    Start/stop optional live sidebar');
       console.log('  quiet|focus|lively    Set buddy presence mode');
       console.log('  events                Show recent buddy events');
+      console.log('  summary               Show session summary (Lv.10+)');
+      console.log('  unlocks               Show level unlock progress');
       console.log('  session-start         Handle session start');
       console.log('  tool-use <t> [f]      Handle tool use event');
       console.log('  session-stop          Handle session stop');
