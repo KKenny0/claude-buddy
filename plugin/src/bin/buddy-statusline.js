@@ -26,7 +26,6 @@ const c = {
 
 // --- Level-gated unlock system ---
 const UNLOCKS = {
-  testStatus: 3,
   fileFocus: 5,
   sessionDuration: 7,
   summary: 10,
@@ -169,14 +168,6 @@ function buildSegments(pet, session, mode, wsInfo) {
     if (path) {
       segs.push(`${c.magenta}${path.label}${c.reset}`);
     }
-  }
-
-  // Level 3+: test status
-  if (unlocked(pet.level, 'testStatus')) {
-    const status = session.lastTestStatus || 'unknown';
-    if (status === 'green') segs.push(`${c.dim}tests${c.reset} ${c.green}green${c.reset}`);
-    else if (status === 'red') segs.push(`${c.dim}tests${c.reset} ${c.red}red${c.reset}`);
-    else segs.push(`${c.dim}tests${c.reset} ${c.dim}idle${c.reset}`);
   }
 
   // Coach: error avalanche (always shown — critical signal)
