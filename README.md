@@ -6,7 +6,7 @@ Your buddy tracks your coding patterns via Claude Code hooks and surfaces insigh
 
 **Statusline (always visible in Claude Code):**
 ```
-buddy: focus | 🐉 火火 focused | Lv.7 30% | streak 1d | tests idle | ↻ core.js
+my-project  main  ctx 23%  |  🐉 火火 · focused · focus  |  Lv.7 30%  |  tests idle  |  ↻ core.js
 ```
 
 **On-demand detail card (`/buddy`):**
@@ -35,7 +35,7 @@ buddy: focus | 🐉 火火 focused | Lv.7 30% | streak 1d | tests idle | ↻ cor
 - 📈 **XP & Leveling** — 20 levels with level-gated feature unlocks
 - 🔇 **Silent by Design** — Hooks produce zero stdout. No additionalContext, no conversation injection.
 - 🏃 **Rhythm Coach** — Error avalanche alerts, file grinding detection, session fatigue warnings
-- 📟 **Native Statusline** — Always-visible Buddy mood, mode, streak, and coach signals
+- 📟 **Native Statusline** — Always-visible workspace context, mood, mode, level, and coach signals
 - 🧾 **Terminal Detail Card** — `/buddy` shows pet status, art, stats, and recent activity
 - 🖥️ **Optional tmux Panel/Sidebar** — Temporary popup or live watcher for terminal users
 - 💾 **Persistent State** — Global `~/.claude-buddy/` storage, survives sessions
@@ -167,7 +167,7 @@ These appear on the statusline based on your coding patterns:
 ```
 /claude-buddy:buddy live
 ```
-Compact always-visible line: mood, level, XP%, streak, coach signals.
+Compact always-visible line: workspace context, mood, level, XP%, coach signals.
 
 **On-demand detail card:**
 ```

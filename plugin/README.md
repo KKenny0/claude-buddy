@@ -5,7 +5,7 @@ A silent coding companion for Claude Code — watches your rhythm, coaches your 
 Your buddy tracks coding patterns via hooks and surfaces insights on the statusline. It stays out of your conversation — no context pollution, no injected reactions. All feedback lives on the statusline, sidebar, or on-demand detail card.
 
 ```
-buddy: focus | 🐉 火火 focused | Lv.7 30% | streak 1d | tests idle | ↻ core.js
+my-project  main  ctx 23%  |  🐉 火火 · focused · focus  |  Lv.7 30%  |  tests idle  |  ↻ core.js
 ```
 
 ## Features
@@ -18,7 +18,7 @@ buddy: focus | 🐉 火火 focused | Lv.7 30% | streak 1d | tests idle | ↻ cor
 - ✦ **Prestige (Lv.20)** — Reset with permanent bonuses
 - 🔇 **Silent by Design** — Hooks produce zero stdout. No conversation injection.
 - 🏃 **Rhythm Coach** — Error avalanche alerts, file grinding detection, session fatigue warnings
-- 📟 **Native Statusline** — Always-visible mood, mode, streak, and coach signals
+- 📟 **Native Statusline** — Always-visible workspace context, mood, mode, level, and coach signals
 - 🧾 **Terminal Detail Card** — `/buddy` shows pet status, art, stats, and recent activity
 - 🖥️ **Optional tmux Panel/Sidebar** — Live watcher for terminal users
 
