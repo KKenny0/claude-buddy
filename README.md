@@ -53,6 +53,17 @@ In Claude Code, run:
 
 That's it. Restart Claude Code and the plugin is active globally.
 
+### Update
+
+When a new version is released, use CLI commands (not the marketplace UI — the UI's "update" button has a [known bug](https://github.com/anthropics/claude-code/issues/16866)):
+
+```
+/plugin marketplace update claude-buddy
+/plugin update claude-buddy@claude-buddy
+```
+
+Then restart Claude Code to apply.
+
 ### Manual setup
 
 ```bash
@@ -259,7 +270,17 @@ All data stored in `~/.claude-buddy/`:
 
 ## Troubleshooting
 
-**Plugin won't install?**
+**Plugin won't update?**
+
+The marketplace UI's "update" button may not work due to a [known Claude Code bug](https://github.com/anthropics/claude-code/issues/16866). Use CLI commands instead:
+
+```
+/plugin marketplace update claude-buddy
+/plugin update claude-buddy@claude-buddy
+```
+
+If that still fails, do a clean reinstall:
+
 ```bash
 rm -rf ~/.claude/plugins/cache/claude-buddy
 /plugin marketplace remove claude-buddy
