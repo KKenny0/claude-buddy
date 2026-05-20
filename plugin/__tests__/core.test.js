@@ -31,6 +31,7 @@ jest.mock('../src/storage', () => {
       next.recentEvents = [...(next.recentEvents || []), event].slice(-12);
       return next;
     }),
+    getBuddyHome: jest.fn(() => '/tmp/mock-buddy'),
     // Test helpers to reset state
     _reset() { _pet = null; _config = { liveMode: 'focus' }; _session = { mode: 'focus', currentTask: '', consecutiveErrors: 0, lastFailureAt: null, lastRecoveryAt: null, lastActivityAt: null, recentTools: [], recentEvents: [] }; _history = []; },
     _setPet(p) { _pet = p; },
@@ -386,6 +387,59 @@ describe('generatePet determinism', () => {
     expect(pet.mood).toBe('happy');
     expect(pet.energy).toBe(100);
     expect(pet.hunger).toBe(0);
+  });
+});
+
+// Regression: getOrCreatePet must not overwrite existing pet on transient read failure
+describe('getOrCreatePet safety', () => {
+  test('does not generate new pet when file exists but readPet returns null', () => {
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+
+    // Create a real temp directory with a pet.json to simulate "file exists"
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'buddy-test-'));
+    const petJsonPath = path.join(tmpDir, 'pet.json');
+    fs.writeFileSync(petJsonPath, '{"level":5,"xp":200,"name":"Test"}');
+
+    // Redirect getBuddyHome to our temp dir
+    storage.getBuddyHome.mockReturnValue(tmpDir);
+    // Simulate transient read failure
+    storage.readPet.mockReturnValue(null);
+    // Reset writePet call count
+    storage.writePet.mockClear();
+
+    const result = core.getOrCreatePet('test-user');
+
+    // Should NOT have generated a new pet (no writePet call)
+    expect(storage.writePet).not.toHaveBeenCalled();
+    // Should return null since read failed but file exists
+    expect(result).toBeNull();
+
+    // Cleanup
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('generates pet when file truly does not exist', () => {
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+
+    // Use a temp dir that has NO pet.json
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'buddy-test-'));
+    storage.getBuddyHome.mockReturnValue(tmpDir);
+    storage.readPet.mockReturnValue(null);
+    storage.writePet.mockClear();
+
+    const result = core.getOrCreatePet('test-user');
+
+    // Should have generated a new pet
+    expect(storage.writePet).toHaveBeenCalled();
+    expect(result).not.toBeNull();
+    expect(result.level).toBe(1);
+
+    // Cleanup
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 });
 

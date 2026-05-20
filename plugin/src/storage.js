@@ -66,6 +66,7 @@ function readJsonFile(filePath, fallback) {
   if (!fs.existsSync(filePath)) return fallback;
   try {
     const data = fs.readFileSync(filePath, 'utf-8');
+    if (!data.trim()) return fallback;
     return JSON.parse(data);
   } catch {
     return fallback;
@@ -95,9 +96,16 @@ const PET_DEFAULTS = {
 
 function readPet() {
   const petPath = path.join(getBuddyHome(), 'pet.json');
-  const pet = readJsonFile(petPath, null);
-  if (!pet) return null;
-  return { ...PET_DEFAULTS, ...pet };
+  if (!fs.existsSync(petPath)) return null;
+
+  // Retry transient read/parse failures (e.g. concurrent write)
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const pet = readJsonFile(petPath, null);
+    if (pet) return { ...PET_DEFAULTS, ...pet };
+  }
+
+  // File exists but all read attempts failed
+  return null;
 }
 
 /** Write pet state to disk (atomic — write to temp then rename) */

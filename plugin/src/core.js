@@ -4,9 +4,12 @@
  */
 
 const crypto = require('crypto');
+const path = require('path');
+const fs = require('fs');
 const { SPECIES, NAME_SUGGESTIONS, HATS, getEvolutionPath, getEvolvedName } = require('./data/species');
 const {
   ensureSetup,
+  getBuddyHome,
   readPet,
   writePet,
   logEvent,
@@ -298,7 +301,14 @@ function getOrCreatePet(username) {
   ensureSetup();
   let pet = readPet();
   if (!pet) {
-    pet = generatePet(username ?? 'anonymous');
+    // Only generate a new pet if pet.json genuinely doesn't exist.
+    // If the file exists but readPet() failed (transient error),
+    // return null so the caller can handle it gracefully instead
+    // of overwriting existing progress with a fresh level-1 pet.
+    const petPath = path.join(getBuddyHome(), 'pet.json');
+    if (!fs.existsSync(petPath)) {
+      pet = generatePet(username ?? 'anonymous');
+    }
   }
   return pet;
 }
