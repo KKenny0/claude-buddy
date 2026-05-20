@@ -1,6 +1,5 @@
 {
   "name": "claude-buddy",
-  "version": "1.0.0",
   "description": "A silent coding companion — virtual pet, rhythm coach, and statusline buddy for Claude Code",
   "main": "src/core.js",
   "bin": {
