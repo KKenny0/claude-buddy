@@ -14,7 +14,7 @@ const { EVOLUTION_PATHS } = require('../data/species');
 const ESC = '\x1b[';
 const c = {
   reset: `${ESC}0m`,
-  dim: `${ESC}2m`,
+  dim: `${ESC}90m`,
   cyan: `${ESC}36m`,
   green: `${ESC}32m`,
   yellow: `${ESC}33m`,
