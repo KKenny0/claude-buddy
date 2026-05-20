@@ -42,12 +42,12 @@ if [ -n "$INPUT" ]; then
     })" 2>/dev/null || true)
 fi
 
-# Find buddy-core
+# Find buddy-core — prefer local plugin copy over global install
 BUDDY_CORE=""
-if command -v buddy-core &>/dev/null; then
-  BUDDY_CORE="buddy-core"
-elif [ -f "$PLUGIN_DIR/src/bin/buddy-core.js" ]; then
+if [ -f "$PLUGIN_DIR/src/bin/buddy-core.js" ]; then
   BUDDY_CORE="node $PLUGIN_DIR/src/bin/buddy-core.js"
+elif command -v buddy-core &>/dev/null; then
+  BUDDY_CORE="buddy-core"
 fi
 
 if [ -n "$BUDDY_CORE" ] && [ -n "$TOOL_NAME" ]; then

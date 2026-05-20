@@ -13,12 +13,12 @@ PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 mkdir -p "$BUDDY_HOME"
 touch "$BUDDY_HOME/events.log"
 
-# Try to find buddy-core
+# Try to find buddy-core — prefer local plugin copy over global install
 BUDDY_CORE=""
-if command -v buddy-core &>/dev/null; then
-  BUDDY_CORE="buddy-core"
-elif [ -f "$PLUGIN_DIR/src/bin/buddy-core.js" ]; then
+if [ -f "$PLUGIN_DIR/src/bin/buddy-core.js" ]; then
   BUDDY_CORE="node $PLUGIN_DIR/src/bin/buddy-core.js"
+elif command -v buddy-core &>/dev/null; then
+  BUDDY_CORE="buddy-core"
 fi
 
 if [ -n "$BUDDY_CORE" ]; then
