@@ -5,6 +5,8 @@
  * All output is purely visual — nothing is injected into conversation context.
  */
 
+const { execSync } = require('child_process');
+const path = require('path');
 const { getOrCreatePet, xpProgress, effectiveLevel } = require('../core');
 const { ensureSetup, readSession, readConfig } = require('../storage');
 const { EVOLUTION_PATHS } = require('../data/species');
@@ -111,20 +113,49 @@ function colorForMood(mood) {
   return c.cyan;
 }
 
-function buildSegments(pet, session, mode) {
+function resolveBranch(ctx) {
+  if (ctx.workspace?.git_worktree) return ctx.workspace.git_worktree;
+  try {
+    return execSync('git branch --show-current', {
+      encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 2000
+    }).trim() || null;
+  } catch { return null; }
+}
+
+function contextWindowColor(pct) {
+  if (pct == null) return null;
+  if (pct > 80) return c.red;
+  if (pct > 50) return c.yellow;
+  return c.dim;
+}
+
+function buildSegments(pet, session, mode, wsInfo) {
   const segs = [];
   const progress = xpProgress(pet);
   const eLv = effectiveLevel(pet);
   const prestige = pet.prestige || 0;
 
-  // Core: always shown
-  segs.push(`${c.cyan}buddy:${c.reset} ${c.yellow}${mode}${c.reset}`);
+  // Workspace context — dim layer, always shown
+  if (wsInfo.folder) {
+    segs.push(`${c.dim}${wsInfo.folder}${c.reset}`);
+  }
+  if (wsInfo.branch) {
+    segs.push(`${c.dim}${wsInfo.branch}${c.reset}`);
+  }
+  const ctxColor = contextWindowColor(wsInfo.ctxPct);
+  if (ctxColor) {
+    const pctStr = wsInfo.ctxPct != null ? `${Math.round(wsInfo.ctxPct)}%` : '--';
+    segs.push(`${ctxColor}ctx${c.reset} ${ctxColor}${pctStr}${c.reset}`);
+  }
 
-  // Evolved name or base name
+  // Pet identity (merged: name + mood + mode)
   const displayName = pet.evolvedForm || pet.name;
-  segs.push(`${pet.speciesEmoji} ${displayName} ${colorForMood(pet.mood)}${pet.mood}${c.reset}`);
+  segs.push(
+    `${pet.speciesEmoji} ${displayName} ${c.dim}\u00b7${c.reset} ` +
+    `${colorForMood(pet.mood)}${pet.mood}${c.reset}` +
+    `${c.dim} \u00b7 ${mode}${c.reset}`
+  );
   segs.push(`${c.dim}Lv.${eLv}${c.reset} ${progress}%`);
-  segs.push(`${c.dim}streak${c.reset} ${pet.streak || 0}d`);
 
   // Prestige indicator
   if (prestige > 0) {
@@ -178,14 +209,20 @@ function buildSegments(pet, session, mode) {
 
 async function main() {
   ensureSetup();
-  await readStdinJson();
+  const ctx = await readStdinJson();
 
   const config = readConfig();
   const session = readSession();
   const mode = session.mode || config.liveMode || 'focus';
   const pet = getOrCreatePet(process.env.USER || 'anonymous');
 
-  const line = buildSegments(pet, session, mode).join(` ${c.dim}|${c.reset} `);
+  const wsInfo = {
+    folder: ctx.cwd ? path.basename(ctx.cwd) : null,
+    branch: resolveBranch(ctx),
+    ctxPct: ctx.context_window?.used_percentage ?? null,
+  };
+
+  const line = buildSegments(pet, session, mode, wsInfo).join(` ${c.dim}|${c.reset} `);
   process.stdout.write(line);
 }
 
@@ -195,5 +232,5 @@ main().catch(() => {
 
 // Export for testing
 if (typeof module !== 'undefined') {
-  module.exports = { errorThreshold, grindingThreshold, fatigueThresholdMin, grindingFile };
+  module.exports = { errorThreshold, grindingThreshold, fatigueThresholdMin, grindingFile, contextWindowColor, resolveBranch };
 }

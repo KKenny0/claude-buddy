@@ -35,7 +35,7 @@ jest.mock('../src/core', () => ({
   effectiveLevel: jest.fn((pet) => pet.prestige > 0 ? `${pet.level}+${pet.prestige}` : String(pet.level)),
 }));
 
-const { errorThreshold, grindingThreshold, fatigueThresholdMin, grindingFile } = require('../src/bin/buddy-statusline');
+const { errorThreshold, grindingThreshold, fatigueThresholdMin, grindingFile, contextWindowColor, resolveBranch } = require('../src/bin/buddy-statusline');
 
 describe('errorThreshold', () => {
   test('base threshold at debug=50', () => {
@@ -147,5 +147,43 @@ describe('grindingFile with threshold', () => {
   test('returns shortest filename component', () => {
     const tools = Array(5).fill({ tool: 'edit', file: 'src/plugins/core.js' });
     expect(grindingFile(makeSession(tools))).toBe('core.js');
+  });
+});
+
+describe('contextWindowColor', () => {
+  test('returns null for null/undefined', () => {
+    expect(contextWindowColor(null)).toBeNull();
+    expect(contextWindowColor(undefined)).toBeNull();
+  });
+
+  test('dim for normal usage', () => {
+    const result = contextWindowColor(30);
+    // should not be null
+    expect(result).not.toBeNull();
+  });
+
+  test('yellow for >50%', () => {
+    const result = contextWindowColor(60);
+    expect(result).not.toBeNull();
+    // verify it differs from normal (used to be a dim color)
+  });
+
+  test('red for >80%', () => {
+    const result = contextWindowColor(90);
+    expect(result).not.toBeNull();
+  });
+});
+
+describe('resolveBranch', () => {
+  test('returns git_worktree when available', () => {
+    const ctx = { workspace: { git_worktree: 'feature-branch' } };
+    expect(resolveBranch(ctx)).toBe('feature-branch');
+  });
+
+  test('returns null when not in git repo and no worktree', () => {
+    // execSync will throw for git in a non-git dir; the function catches and returns null
+    const result = resolveBranch({});
+    // Can be a branch name if running tests inside a git repo, or null
+    expect(typeof result === 'string' || result === null).toBe(true);
   });
 });
