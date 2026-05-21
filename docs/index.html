@@ -403,7 +403,7 @@
             <span class="feature-emoji">📈</span>
             <div class="feature-content">
               <h3 data-i18n="f3.t">XP and leveling</h3>
-              <p data-i18n="f3.d">20 levels with gated feature unlocks. Gain XP from commits, tool usage, streaks, and daily interactions. Hatch at Lv.1, unlock the statusline at Lv.3, evolve at Lv.15, prestige at Lv.20.</p>
+              <p data-i18n="f3.d">20 levels with gated feature unlocks. Gain XP from commits, tool usage, streaks, and daily interactions. Hatch at Lv.1, evolve at Lv.15, prestige at Lv.20.</p>
             </div>
           </div>
           <div class="feature-item reveal">
@@ -421,10 +421,10 @@
             </div>
           </div>
           <div class="feature-item reveal">
-            <span class="feature-emoji">🖥️</span>
+            <span class="feature-emoji">🧾</span>
             <div class="feature-content">
-              <h3 data-i18n="f6.t">tmux panel</h3>
-              <p data-i18n="f6.d">Optional temporary popup or live sidebar watcher for terminal power users. Works outside Claude Code too.</p>
+              <h3 data-i18n="f6.t">Terminal detail card</h3>
+              <p data-i18n="f6.d">On-demand pet status, art, stats, and recent activity via /buddy. The companion to the always-on statusline.</p>
             </div>
           </div>
         </div>
@@ -527,7 +527,7 @@
           <div class="unlock-row reveal"><span class="unlock-lvl">Lv.3</span><span class="unlock-desc" data-i18n="u3">Test status indicator</span></div>
           <div class="unlock-row reveal"><span class="unlock-lvl">Lv.5</span><span class="unlock-desc" data-i18n="u5">File grinding detection</span></div>
           <div class="unlock-row reveal"><span class="unlock-lvl">Lv.7</span><span class="unlock-desc" data-i18n="u7">Session duration and fatigue warning</span></div>
-          <div class="unlock-row reveal"><span class="unlock-lvl">Lv.10</span><span class="unlock-desc" data-i18n="u10">Session summary command</span></div>
+          <div class="unlock-row reveal"><span class="unlock-lvl">Lv.10</span><span class="unlock-desc" data-i18n="u10">Session stats in statusline</span></div>
           <div class="unlock-row reveal"><span class="unlock-lvl">Lv.13</span><span class="unlock-desc" data-i18n="u13">Error pattern recognition</span></div>
           <div class="unlock-row reveal"><span class="unlock-lvl">Lv.15</span><span class="unlock-desc" data-i18n="u15">Evolution: species transforms by highest stat</span></div>
           <div class="unlock-row reveal"><span class="unlock-lvl">Lv.20</span><span class="unlock-desc" data-i18n="u20">Prestige: reset with permanent bonuses</span></div>
@@ -583,13 +583,13 @@
         'f2.t': 'Rhythm coach',
         'f2.d': 'Error avalanche alerts, file grinding detection, session fatigue warnings. Your buddy watches your coding patterns and surfaces signals when they matter.',
         'f3.t': 'XP and leveling',
-        'f3.d': '20 levels with gated feature unlocks. Gain XP from commits, tool usage, streaks, and daily interactions. Hatch at Lv.1, unlock the statusline at Lv.3, evolve at Lv.15, prestige at Lv.20.',
+        'f3.d': '20 levels with gated feature unlocks. Gain XP from commits, tool usage, streaks, and daily interactions. Hatch at Lv.1, evolve at Lv.15, prestige at Lv.20.',
         'f4.t': 'Deterministic generation',
         'f4.d': 'SHA-256 based species, rarity, and stats derived from your username. Same user always gets the same pet. Plus a 1% shiny chance.',
         'f5.t': 'Native statusline',
         'f5.d': 'Always-visible workspace context, mood, mode, level, and coach signals right in Claude Code. Three presence modes: quiet, focus (default), and lively.',
-        'f6.t': 'tmux panel',
-        'f6.d': 'Optional temporary popup or live sidebar watcher for terminal power users. Works outside Claude Code too.',
+        'f6.t': 'Terminal detail card',
+        'f6.d': 'On-demand pet status, art, stats, and recent activity via /buddy. The companion to the always-on statusline.',
         'species.title': '12 species, 5 rarity tiers',
         'sp.legendary': 'Legendary (1%)',
         'sp.epic': 'Epic (4%)',
@@ -607,7 +607,7 @@
         'u3': 'Test status indicator',
         'u5': 'File grinding detection',
         'u7': 'Session duration and fatigue warning',
-        'u10': 'Session summary command',
+        'u10': 'Session stats in statusline',
         'u13': 'Error pattern recognition',
         'u15': 'Evolution: species transforms by highest stat',
         'u20': 'Prestige: reset with permanent bonuses',
@@ -638,13 +638,13 @@
         'f2.t': '节奏教练',
         'f2.d': '错误雪崩警报，文件磨 grind 检测，会话疲劳警告。你的伙伴注视你的编程模式，在关键时刻提供信号。',
         'f3.t': '经验与升级',
-        'f3.d': '20 个等级，每个等级解锁新功能。通过提交代码、工具使用、连续打卡和日常互动获取经验。Lv.1 孵化，Lv.3 解锁状态行，Lv.15 进化，Lv.20 声望重置。',
+        'f3.d': '20 个等级，每个等级解锁新功能。通过提交代码、工具使用、连续打卡和日常互动获取经验。Lv.1 孵化，Lv.15 进化，Lv.20 声望重置。',
         'f4.t': '确定性生成',
         'f4.d': '基于 SHA-256 的物种、稀有度和属性，从你的用户名派生。同一用户总是获得相同的宠物。另有 1% 的闪光概率。',
         'f5.t': '原生状态行',
         'f5.d': '在 Claude Code 中始终可见的工作区上下文、情绪、模式、等级和教练信号。三种存在模式：安静、专注（默认）、活跃。',
-        'f6.t': 'tmux 面板',
-        'f6.d': '可选的临时弹出窗口或实时侧边栏监控，适合终端高级用户。也可在 Claude Code 外使用。',
+        'f6.t': '终端详情卡片',
+        'f6.d': '通过 /buddy 按需查看宠物状态、形象、属性和近期活动。始终可见状态行的互补展示。',
         'species.title': '12 个物种，5 个稀有度等级',
         'sp.legendary': '传说 (1%)',
         'sp.epic': '史诗 (4%)',
@@ -662,7 +662,7 @@
         'u3': '测试状态指示器',
         'u5': '文件磨 grind 检测',
         'u7': '会话时长与疲劳警告',
-        'u10': '会话总结命令',
+        'u10': '状态行中显示会话统计',
         'u13': '错误模式识别',
         'u15': '进化：物种根据最高属性变化',
         'u20': '声望：重置等级并获得永久加成',
