@@ -344,49 +344,6 @@ function setMood(pet, mood) {
   return pet;
 }
 
-/** Feed the pet */
-function feedPet(pet) {
-  pet.hunger = Math.max(0, pet.hunger - 30);
-  pet.mood = 'happy';
-  pet.lastActive = new Date().toISOString();
-  const mode = getLiveMode();
-  const reaction = createReaction(pet, `${pet.speciesEmoji} ${pet.name} 开心地吃完了，精神回来了。`, 'happy', 'interaction', mode);
-  pet.lastReaction = reaction;
-  writePet(pet);
-  rememberEvent({ type: 'interaction', command: 'feed', message: `${pet.name} was fed!`, importance: reaction.priority, surface: reaction.surface, reaction, timestamp: new Date().toISOString() });
-  return pet;
-}
-
-/** Play with the pet */
-function playWithPet(pet) {
-  pet.energy = Math.min(100, pet.energy + 20);
-  pet.hunger = Math.min(100, pet.hunger + 10);
-  pet.mood = 'excited';
-  pet.lastActive = new Date().toISOString();
-  const mode = getLiveMode();
-  const reaction = createReaction(pet, `${pet.speciesEmoji} ${pet.name} 玩得很开心，尾巴都快晃出残影了。`, 'excited', 'interaction', mode);
-  pet.lastReaction = reaction;
-  writePet(pet);
-  rememberEvent({ type: 'interaction', command: 'play', message: `Played with ${pet.name}!`, importance: reaction.priority, surface: reaction.surface, reaction, timestamp: new Date().toISOString() });
-  return pet;
-}
-
-/** Pet the pet (gain XP) */
-function petPet(pet) {
-  if (pet.petXpToday < 20) {
-    addXp(pet, 2, 'pet');
-    pet.petXpToday += 2;
-  }
-  pet.mood = 'happy';
-  pet.lastActive = new Date().toISOString();
-  const mode = getLiveMode();
-  const reaction = createReaction(pet, `${pet.speciesEmoji} ${pet.name} 舒服地眯起眼睛。`, 'happy', 'interaction', mode);
-  pet.lastReaction = reaction;
-  writePet(pet);
-  rememberEvent({ type: 'interaction', command: 'pet', message: `Petted ${pet.name}!`, importance: reaction.priority, surface: reaction.surface, reaction, timestamp: new Date().toISOString() });
-  return pet;
-}
-
 /** Rename the pet */
 function renamePet(pet, newName) {
   const oldName = pet.name;
@@ -728,9 +685,6 @@ module.exports = {
   getOrCreatePet,
   addXp,
   setMood,
-  feedPet,
-  playWithPet,
-  petPet,
   renamePet,
   onSessionStart,
   onToolUse,

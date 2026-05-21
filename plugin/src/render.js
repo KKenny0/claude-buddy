@@ -364,77 +364,6 @@ function renderDetailCard(options = {}) {
   return lines.join('\n');
 }
 
-function renderSidebarFrame(options = {}) {
-  const colors = palette(options.color !== false);
-  const pet = options.pet;
-  if (!pet) return renderEmptyState(options);
-
-  const session = options.session || {};
-  const config = options.config || {};
-  const width = Math.max(24, options.width || 32);
-  const height = options.height || 24;
-  const inner = width - 2;
-  const mode = modeOf(session, config);
-  const progress = xpProgress(pet);
-  const rc = rarityColor(pet.rarity, colors);
-  const shinyTag = pet.shiny ? ` ${colors.brightYellow}SHINY${colors.reset}` : '';
-  const reaction = options.reaction || pet.lastReaction?.text || '';
-  const animation = options.animation || {};
-  const recent = Array.isArray(session.recentEvents) ? session.recentEvents.slice(-4) : [];
-  const eLv = effectiveLevel(pet);
-  const prestige = pet.prestige || 0;
-  const prestigeTag = prestige > 0 ? ` ${colors.brightYellow}\u2726${prestige}${colors.reset}` : '';
-  const evolutionTag = pet.evolvedForm ? ` ${colors.magenta}[${pet.evolvedForm}]${colors.reset}` : '';
-  const lines = [];
-
-  const push = (line = '') => lines.push(clipText(line, inner));
-  const rule = () => push(`${colors.dim}${'─'.repeat(Math.max(4, inner))}${colors.reset}`);
-
-  push(`${colors.brightCyan}${colors.bold}Claude Buddy${colors.reset}`);
-  rule();
-  push(`${pet.speciesEmoji} ${colors.bold}${pet.name}${colors.reset}${shinyTag}${evolutionTag}${prestigeTag}`);
-  push(`${rc}Lv.${eLv} ${pet.rarity.toUpperCase()}${colors.reset}  ${colors.cyan}${mode}${colors.reset}`);
-  push(`XP ${progress}%`);
-  push(bar(progress, width - 4, colors.brightGreen, colors));
-  push('');
-
-  for (const line of getShowcaseArt(pet, animation)) {
-    push(center(line, inner));
-  }
-
-  push('');
-  push(`${moodEmojis[pet.mood] || '❓'} Mood: ${moodColor(pet.mood, colors)}${pet.mood}${colors.reset}  streak ${String(pet.streak || 0)}d`);
-  push(`${colors.cyan}DBG ${pet.stats.debug}  WIS ${pet.stats.wisdom}${colors.reset}`);
-  push(`Energy ⚡ ${String(pet.energy).padStart(3)} / 100`);
-  push(bar(pet.energy, width - 4, colors.brightYellow, colors));
-  push(`Hunger 🍲 ${String(pet.hunger).padStart(3)} / 100`);
-  push(bar(pet.hunger, width - 4, colors.red, colors));
-
-  if (reaction) {
-    rule();
-    for (const line of wrapText(reaction, width - 4).slice(0, 3)) {
-      push(`${colors.yellow}${line}${colors.reset}`);
-    }
-  }
-
-  if (recent.length > 0) {
-    rule();
-    push(`${colors.brightBlue}Recent Events${colors.reset}`);
-    for (const event of recent) {
-      const time = event.timestamp ? event.timestamp.slice(11, 16) : '--:--';
-      push(`${eventDot(event, colors)} ${colors.gray}${time}${colors.reset}  ${friendlyEventLabel(event)}`);
-    }
-  }
-
-  rule();
-  push(`${colors.cyan}buddy:${colors.reset} ${mode} ${colors.dim}|${colors.reset} events ${recent.length}`);
-  if (options.panel) {
-    push(`${colors.dim}q/Esc exits${colors.reset}`);
-  }
-
-  return lines.slice(0, Math.max(1, height)).join('\n');
-}
-
 module.exports = {
   CLEAR,
   colors: colorCodes,
@@ -448,6 +377,5 @@ module.exports = {
   getShowcaseArt,
   friendlyEventLabel,
   renderDetailCard,
-  renderSidebarFrame,
   renderEmptyState,
 };
