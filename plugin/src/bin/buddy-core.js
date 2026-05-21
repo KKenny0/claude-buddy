@@ -64,7 +64,7 @@ function isBuddyHookHandler(handler) {
       command.includes('post-tool-use.sh') ||
       command.includes('stop.sh') ||
       command.includes('${CLAUDE_PLUGIN_ROOT}/hooks/') ||
-      command.includes('/claude-buddy/plugin/hooks/')
+      command.includes('/buddybar/plugin/hooks/')
     );
   });
 }
@@ -108,7 +108,7 @@ function setupHooks(options = {}) {
           continue;
         }
 
-        // Remove any previously injected Claude Buddy handlers, then append one
+        // Remove any previously injected BuddyBar handlers, then append one
         // canonical handler for this event.
         settings.hooks[event] = settings.hooks[event].filter((handler) => !isBuddyHookHandler(handler));
         settings.hooks[event].push(...handlers);
@@ -219,7 +219,7 @@ function removeStatusline() {
   const config = readConfig();
   config.statuslineEnabled = false;
   writeConfig(config);
-  console.log('Claude Buddy statusline disabled.');
+  console.log('BuddyBar statusline disabled.');
 }
 
 switch (command) {
@@ -262,7 +262,7 @@ switch (command) {
     const subcommand = args[1] || 'on';
     if (subcommand === 'install' || subcommand === 'on') {
       const installed = installStatusline({ forceBuddy: args.includes('--force') });
-      if (installed) console.log(`Claude Buddy statusline installed (${getLiveMode()} mode).`);
+      if (installed) console.log(`BuddyBar statusline installed (${getLiveMode()} mode).`);
     } else if (subcommand === 'remove' || subcommand === 'off' || subcommand === 'uninstall') {
       removeStatusline();
     } else {
@@ -279,7 +279,7 @@ switch (command) {
       process.exit(1);
     }
     const mode = setLiveMode(modeName);
-    console.log(`Claude Buddy mode set to ${mode}.`);
+    console.log(`BuddyBar mode set to ${mode}.`);
     break;
   }
 
@@ -288,7 +288,7 @@ switch (command) {
   case 'focus':
   case 'lively': {
     const mode = setLiveMode(command);
-    console.log(`Claude Buddy mode set to ${mode}.`);
+    console.log(`BuddyBar mode set to ${mode}.`);
     break;
   }
 
@@ -299,7 +299,7 @@ switch (command) {
       removeStatusline();
     } else {
       installStatusline({ forceBuddy: true });
-      console.log(`Claude Buddy statusline enabled (${getLiveMode()} mode).`);
+      console.log(`BuddyBar statusline enabled (${getLiveMode()} mode).`);
     }
     break;
   }
@@ -389,7 +389,7 @@ switch (command) {
       const pet = getOrCreatePet(process.env.USER ?? 'anonymous');
       printDetailCard(pet);
     } else {
-      console.log(`Claude Buddy`);
+      console.log(`BuddyBar`);
       console.log('');
       console.log('Commands:');
       console.log('  hatch [username]           Hatch a new pet');

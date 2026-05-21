@@ -1,5 +1,5 @@
 /**
- * Species definitions for Claude Buddy pets.
+ * Species definitions for BuddyBar pets.
  * Each species has ASCII art for normal, happy, sleepy, and excited states.
  */
 

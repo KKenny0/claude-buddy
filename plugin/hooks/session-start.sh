@@ -1,5 +1,5 @@
 #!/bin/bash
-# Claude Buddy — session-start hook
+# BuddyBar — session-start hook
 # Fires when a Claude Code session begins. The pet wakes up!
 
 set -euo pipefail

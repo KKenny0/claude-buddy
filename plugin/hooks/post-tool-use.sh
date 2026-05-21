@@ -1,5 +1,5 @@
 #!/bin/bash
-# Claude Buddy — post-tool-use hook
+# BuddyBar — post-tool-use hook
 # Fires after Claude uses any tool. Updates pet state and reactions.
 # Produces no stdout — all feedback goes to statusline/sidebar.
 

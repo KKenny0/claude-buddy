@@ -1,4 +1,4 @@
-# Claude Buddy 🐾
+# BuddyBar 🐾
 
 A silent coding companion for Claude Code — watches your rhythm, coaches your pace, grows with you.
 
@@ -25,8 +25,8 @@ my-project  main  ctx 23%  |  🐉 火火 · focused · focus  |  Lv.7 30%  |  t
 ## Installation
 
 ```
-/plugin marketplace add KKenny0/claude-buddy
-/plugin install claude-buddy@claude-buddy
+/plugin marketplace add KKenny0/buddybar
+/plugin install buddybar@buddybar
 ```
 
 Restart Claude Code and the plugin is active globally.
@@ -34,11 +34,11 @@ Restart Claude Code and the plugin is active globally.
 ## Quick Start
 
 ```
-/claude-buddy:buddy hatch          # Hatch your first pet
-/claude-buddy:buddy                # Show pet detail card
-/claude-buddy:buddy live           # Enable the statusline
-/claude-buddy:buddy feed           # Feed your pet
-/claude-buddy:buddy pet            # Pet your buddy (+2 XP)
+/buddybar:buddy hatch          # Hatch your first pet
+/buddybar:buddy                # Show pet detail card
+/buddybar:buddy live           # Enable the statusline
+/buddybar:buddy feed           # Feed your pet
+/buddybar:buddy pet            # Pet your buddy (+2 XP)
 ```
 
 ## Commands
@@ -66,7 +66,7 @@ Restart Claude Code and the plugin is active globally.
 | `evolve` | Trigger evolution (Lv.15+, auto on level up) |
 | `prestige` | Reset with permanent bonuses (Lv.20+) |
 
-All commands are prefixed with `/claude-buddy:buddy` in Claude Code.
+All commands are prefixed with `/buddybar:buddy` in Claude Code.
 
 ## Level-Gated Unlocks
 

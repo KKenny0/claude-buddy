@@ -1,18 +1,18 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "claude-buddy",
-  "description": "A virtual pet companion for Claude Code coding sessions — Tamagotchi for developers",
+  "name": "buddybar",
+  "description": "A virtual pet statusline for Claude Code — Tamagotchi meets status bar",
   "owner": {
     "name": "Kennywu",
     "email": "jdlow@live.cn"
   },
   "plugins": [
     {
-      "name": "claude-buddy",
-      "description": "🐾 A virtual pet companion that watches you code, reacts to your actions, and grows with you. 12 species, 5 rarity tiers, real-time tmux sidebar with ASCII art animations.",
+      "name": "buddybar",
+      "description": "🐾 A virtual pet statusline for Claude Code — watches your rhythm, coaches your pace, grows with you. 12 species, 5 rarity tiers, evolution and prestige.",
       "category": "fun",
       "source": "./plugin",
-      "homepage": "https://github.com/KKenny0/claude-buddy"
+      "homepage": "https://github.com/KKenny0/buddybar"
     }
   ]
 }

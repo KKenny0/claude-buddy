@@ -1,5 +1,5 @@
 #!/bin/bash
-# Claude Buddy — stop hook
+# BuddyBar — stop hook
 # Fires when a Claude Code session ends. The pet goes to sleep.
 # Produces no stdout — all feedback goes to statusline/sidebar.
 

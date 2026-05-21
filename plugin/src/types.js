@@ -1,5 +1,5 @@
 /**
- * Core types for Claude Buddy pet system.
+ * Core types for BuddyBar pet system.
  * (Type definitions removed — kept as JSDoc reference only)
  */
 

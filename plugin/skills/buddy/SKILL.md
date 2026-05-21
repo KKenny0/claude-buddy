@@ -1,8 +1,8 @@
-# Claude Buddy — Command Reference
+# BuddyBar — Command Reference
 
 Do not mention the pet, react to the pet, or reference the pet in conversation unless the user explicitly asks about it.
 
-If the user invoked `/claude-buddy:buddy` or `/buddy`, run the command below and show the output. Do not add commentary.
+If the user invoked `/buddybar:buddy` or `/buddy`, run the command below and show the output. Do not add commentary.
 
 ## Running Buddy Commands
 

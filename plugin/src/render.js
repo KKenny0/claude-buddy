@@ -1,5 +1,5 @@
 /**
- * Shared terminal rendering helpers for Claude Buddy presence surfaces.
+ * Shared terminal rendering helpers for BuddyBar presence surfaces.
  * This module is intentionally side-effect free: callers pass state in and
  * receive a string to print.
  */
@@ -296,13 +296,13 @@ function renderEmptyState(options = {}) {
   const inner = width - 4;
   const lines = [
     `${colors.dim}╭${'─'.repeat(width - 2)}╮${colors.reset}`,
-    `${colors.dim}│${colors.reset} ${padRight(`${colors.brightCyan}${colors.bold}Claude Buddy${colors.reset}`, inner)} ${colors.dim}│${colors.reset}`,
+    `${colors.dim}│${colors.reset} ${padRight(`${colors.brightCyan}${colors.bold}BuddyBar${colors.reset}`, inner)} ${colors.dim}│${colors.reset}`,
     `${colors.dim}├${'─'.repeat(width - 2)}┤${colors.reset}`,
     `${colors.dim}│${colors.reset} ${padRight(center('🥚', inner), inner)} ${colors.dim}│${colors.reset}`,
     `${colors.dim}│${colors.reset} ${padRight(center('Buddy is warming up', inner), inner)} ${colors.dim}│${colors.reset}`,
   ];
 
-  for (const line of wrapText('Run /claude-buddy:buddy hatch or wait for session start.', inner)) {
+  for (const line of wrapText('Run /buddybar:buddy hatch or wait for session start.', inner)) {
     lines.push(`${colors.dim}│${colors.reset} ${padRight(line, inner)} ${colors.dim}│${colors.reset}`);
   }
   lines.push(`${colors.dim}╰${'─'.repeat(width - 2)}╯${colors.reset}`);
@@ -336,7 +336,7 @@ function renderDetailCard(options = {}) {
 
   const lines = [];
   lines.push(`${colors.dim}╭${'─'.repeat(width - 2)}╮${colors.reset}`);
-  lines.push(`${colors.dim}│${colors.reset} ${padRight(`${colors.brightCyan}${colors.bold}Claude Buddy${colors.reset}`, inner)} ${colors.dim}│${colors.reset}`);
+  lines.push(`${colors.dim}│${colors.reset} ${padRight(`${colors.brightCyan}${colors.bold}BuddyBar${colors.reset}`, inner)} ${colors.dim}│${colors.reset}`);
   lines.push(`${colors.dim}├${'─'.repeat(width - 2)}┤${colors.reset}`);
   lines.push(`${colors.dim}│${colors.reset} ${padRight(`${pet.speciesEmoji} ${colors.bold}${pet.name}${colors.reset}${shinyTag}${evolutionTag}${prestigeTag}  ${rc}Lv.${eLv} ${pet.rarity}${colors.reset}  ${colors.cyan}${mode}${colors.reset}`, inner)} ${colors.dim}│${colors.reset}`);
   lines.push(`${colors.dim}│${colors.reset} ${padRight(`XP ${bar(progress, 16, colors.brightGreen, colors)} ${progress}%   ${mood}   streak ${pet.streak || 0}d`, inner)} ${colors.dim}│${colors.reset}`);

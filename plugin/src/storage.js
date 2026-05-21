@@ -1,5 +1,5 @@
 /**
- * File system utilities for Claude Buddy.
+ * File system utilities for BuddyBar.
  * Handles config directory creation, pet.json read/write, and event logging.
  */
 
