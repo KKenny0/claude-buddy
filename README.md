@@ -2,7 +2,7 @@
 
 > A silent coding companion for Claude Code — watches your rhythm, coaches your pace, grows with you.
 
-Your buddy tracks your coding patterns via Claude Code hooks and surfaces insights on the statusline. It stays out of your conversation — no context pollution, no injected reactions. All feedback lives on the statusline, sidebar, or on-demand detail card.
+Your buddy tracks your coding patterns via Claude Code hooks and surfaces insights on the statusline. It stays out of your conversation — no context pollution, no injected reactions. All feedback lives on the statusline or on-demand detail card.
 
 **Statusline (always visible in Claude Code):**
 ```
@@ -37,7 +37,6 @@ my-project  main  ctx 23%  |  🐉 火火 · focused · focus  |  Lv.7 30%  |  t
 - 🏃 **Rhythm Coach** — Error avalanche alerts, file grinding detection, session fatigue warnings
 - 📟 **Native Statusline** — Always-visible workspace context, mood, mode, level, and coach signals
 - 🧾 **Terminal Detail Card** — `/buddy` shows pet status, art, stats, and recent activity
-- 🖥️ **Optional tmux Panel/Sidebar** — Temporary popup or live watcher for terminal users
 - 💾 **Persistent State** — Global `~/.claude-buddy/` storage, survives sessions
 
 ## Installation
@@ -89,21 +88,10 @@ After installation, commands are prefixed with the plugin name:
 |---------|-------------|
 | `/claude-buddy:buddy hatch` | Hatch your first pet (based on your username) |
 | `/claude-buddy:buddy` | Show pet detail card (level, XP, mood, stats, recent activity) |
-| `/claude-buddy:buddy feed` | Feed your pet (restores hunger) |
-| `/claude-buddy:buddy play` | Play with your pet (boosts energy + mood) |
-| `/claude-buddy:buddy pet` | Pet your buddy (+2 XP, daily cap 20) |
-| `/claude-buddy:buddy stats` | Show detailed 5-dimension stats |
 | `/claude-buddy:buddy rename <name>` | Give your pet a name |
-| `/claude-buddy:buddy live` | Install the native Claude Code Buddy statusline |
-| `/claude-buddy:buddy statusline remove` | Remove Buddy from the statusline |
-| `/claude-buddy:buddy panel` | Open temporary tmux popup, or print detail card outside tmux |
-| `/claude-buddy:buddy sidebar start` | Start optional detached/tmux sidebar |
-| `/claude-buddy:buddy quiet` | Minimal Buddy statusline presence |
-| `/claude-buddy:buddy focus` | Balanced presence (default) |
-| `/claude-buddy:buddy lively` | More active statusline updates |
-| `/claude-buddy:buddy events` | Show recent Buddy activity |
-| `/claude-buddy:buddy summary` | Show session summary (unlocks at Lv.10) |
-| `/claude-buddy:buddy unlocks` | Show level unlock progress |
+| `/claude-buddy:buddy statusline on` | Enable the Buddy statusline |
+| `/claude-buddy:buddy statusline off` | Remove Buddy from the statusline |
+| `/claude-buddy:buddy mode <quiet\|focus\|lively>` | Set Buddy presence mode |
 | `/claude-buddy:buddy evolve` | Trigger evolution (Lv.15+, auto on level up) |
 | `/claude-buddy:buddy prestige` | Reset with permanent bonuses (Lv.20+) |
 
@@ -127,7 +115,7 @@ Your buddy grows with you. Higher levels unlock more statusline features:
 | 3 | Test status indicator (green/red) |
 | 5 | File grinding detection |
 | 7 | Session duration / fatigue warning |
-| 10 | `/buddy summary` — session stats |
+| 10 | Session stats in statusline |
 | 13 | Error pattern recognition |
 | 15 | **Evolution** — species transforms based on highest stat |
 | 20 | **Prestige** — reset to Lv.1 with permanent bonuses |
@@ -176,25 +164,13 @@ These appear on the statusline based on your coding patterns:
 
 **Statusline (primary):**
 ```
-/claude-buddy:buddy live
+/claude-buddy:buddy statusline on
 ```
 Compact always-visible line: workspace context, mood, level, XP%, coach signals.
 
 **On-demand detail card:**
 ```
-/claude-buddy:buddy status
-```
-
-**Optional tmux sidebar:**
-```
-/claude-buddy:buddy sidebar start
-/claude-buddy:buddy sidebar stop
-```
-
-**Manual tmux sidebar (from shell):**
-```bash
-PLUGIN_ROOT="$(find ~/.claude/plugins -path '*/claude-buddy/plugin' -type d | head -n 1)"
-tmux split-window -h -l 28 "node \"$PLUGIN_ROOT/src/bin/buddy-sidebar.js\""
+/claude-buddy:buddy
 ```
 
 ## Species
@@ -231,8 +207,6 @@ Plus a **1% chance of being Shiny** ✨
 | Source | Amount | Cap |
 |--------|--------|-----|
 | Session start (daily) | +10 | 1x/day |
-| Petting | +2 | 20/day |
-| Stats check | +1 | 5/day |
 | Git commit | +5 | uncapped |
 | Every 10 tool uses | +1 | uncapped |
 | Streak bonus | +5 × streak | resets on miss |
@@ -261,7 +235,6 @@ All data stored in `~/.claude-buddy/`:
 │                                     │
 │  /buddy ──▶ buddy-core ──▶ card     │
 │  statusLine ────────────▶ one line  │
-│  panel/sidebar ─────────▶ live view │
 │                                     │
 │  ✗ no stdout from hooks             │
 │  ✗ no additionalContext injection   │
@@ -292,7 +265,7 @@ rm -rf ~/.claude/plugins/cache/claude-buddy
 Plugin not installed. Run the installation commands above.
 
 **Buddy seems quiet?**
-That's intentional. All feedback lives on the statusline and on-demand card. Hooks don't inject text into conversation. Run `/claude-buddy:buddy live` to enable the statusline.
+That's intentional. All feedback lives on the statusline and on-demand card. Hooks don't inject text into conversation. Run `/claude-buddy:buddy statusline on` to enable the statusline.
 
 ## License
 
