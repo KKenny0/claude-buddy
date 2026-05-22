@@ -28,8 +28,6 @@ const c = {
 const UNLOCKS = {
   fileFocus: 5,
   sessionDuration: 7,
-  summary: 10,
-  errorPatterns: 13,
   evolution: 15,
   prestige: 20,
 };

@@ -6,8 +6,15 @@ Your buddy tracks your coding patterns via Claude Code hooks and surfaces insigh
 
 **Statusline (always visible in Claude Code):**
 ```
-my-project  main  ctx 23%  |  🐉 火火 · focused · focus  |  Lv.7 30%  |  tests idle  |  ↻ core.js
+my-project  main  ctx 23%  |  🐉 火火 · focused · focus  |  Lv.7 30%  |  ↻ core.js
 ```
+
+| Segment | Example | What it shows |
+|---------|---------|---------------|
+| Workspace | `my-project  main  ctx 23%` | Project folder, git branch, context window usage (yellow >50%, red >80%) |
+| Pet | `🐉 火火 · focused · focus` | Species emoji, name, mood, presence mode |
+| Level | `Lv.7 30%` | Current level and XP progress to next |
+| Coach | `↻ core.js` `×3` `⏰ 2h` | Rhythm coach signals (level-gated) |
 
 **On-demand detail card (`/buddy`):**
 ```
@@ -112,11 +119,8 @@ Your buddy grows with you. Higher levels unlock more statusline features:
 | Level | Unlocks |
 |-------|---------|
 | 1-2 | Basic status (name, mood, XP progress) |
-| 3 | Test status indicator (green/red) |
 | 5 | File grinding detection |
 | 7 | Session duration / fatigue warning |
-| 10 | Session stats in statusline |
-| 13 | Error pattern recognition |
 | 15 | **Evolution** — species transforms based on highest stat |
 | 20 | **Prestige** — reset to Lv.1 with permanent bonuses |
 
@@ -153,12 +157,11 @@ Your level display changes to `Lv.X+N` where N is your prestige count. The statu
 
 These appear on the statusline based on your coding patterns:
 
-| Signal | Meaning |
-|--------|---------|
-| `🔴 ×3` | 3+ consecutive errors — consider stepping back |
-| `↻ filename` | Same file edited 5+ times — you're deep in a grind |
-| `⏱ 2h+` | Session running long — take a break |
-| `🟢 tests` / `🔴 tests` | Last test run status |
+| Signal | Meaning | Unlocks |
+|--------|---------|---------|
+| `×3` | Consecutive errors — consider stepping back | always |
+| `↻ filename` | Same file edited repeatedly — in a grind | Lv.5 |
+| `⏰ 2h` | Session running long — take a break | Lv.7 |
 
 ### Presence Surfaces
 
