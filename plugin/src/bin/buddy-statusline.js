@@ -211,6 +211,19 @@ async function main() {
     ctxPct: ctx.context_window?.used_percentage ?? null,
   };
 
+  if (!pet) {
+    // Pet data unavailable (corrupted or locked). Show minimal statusline.
+    const folder = wsInfo.folder || '';
+    const branch = wsInfo.branch || '';
+    const parts = [folder, branch].filter(Boolean);
+    if (parts.length) {
+      process.stdout.write(`${c.dim}${parts.join(' · ')}${c.reset}`);
+    } else {
+      process.stdout.write(`${c.dim}buddy${c.reset}`);
+    }
+    return;
+  }
+
   const line = buildSegments(pet, session, mode, wsInfo).join(` ${c.dim}|${c.reset} `);
   process.stdout.write(line);
 }
